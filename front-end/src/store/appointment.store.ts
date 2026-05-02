@@ -12,6 +12,7 @@ type appointmentState = {
     expiredAppointments: Appointment[],
     searchResults: Appointment[],
     page: number,
+    totalPages: number,
     setPage: (page: number) => void,
     createAppointment: (data: Appointment) => Promise<void>
     loadAppointments: (page: number) => Promise<void>,
@@ -21,7 +22,8 @@ type appointmentState = {
     confirmAppointment: (id: string) => Promise<void>
     declineAppointment: (id: string) => Promise<void>
     search: (term: string) => Promise<void>
-    getBooked: (date: string) => Promise<number[]>
+    getBooked: (date: string) => Promise<number[]>,
+    updateAppointment: (data: Partial<Appointment>) => Promise<void>
 }
 export const useAppointmentStore = create<appointmentState>((set, get) => ({
     loading: false,
@@ -33,6 +35,7 @@ export const useAppointmentStore = create<appointmentState>((set, get) => ({
     expiredAppointments: [],
     searchResults: [],
     page: 1,
+    totalPages: 0,
     setPage: (page) => set({ page }),
     createAppointment: async (data) => {
         set({ loading: true, err: null })
@@ -52,7 +55,7 @@ export const useAppointmentStore = create<appointmentState>((set, get) => ({
             set({ loading: true })
             const res = await appointment.loadAppointments(page)
             if (res.data.status == "success")
-                set({ appointments: res.data.data })
+                set({ appointments: res.data.data, totalPages: res.data.pages })
             else set({ err: res.data.data })
         } catch (err) {
             set({ err: "Something went Wrong" })
@@ -97,7 +100,17 @@ export const useAppointmentStore = create<appointmentState>((set, get) => ({
         set({ optionsLoading: true })
         try {
             const res = await appointment.confirm(id)
-            if (res.data.status !== "success") set({ err: "Failed to confirm Appointment" })
+            if (res.data.status === "success") {
+                set((state) => ({
+                    appointments: state.appointments.map((appt) =>
+                        appt._id === id
+                            ? { ...appt, status: "accepted" }
+                            : appt
+                    ),
+                }));
+            }
+            else
+                set({ err: "Failed to confirm Appointment" })
         } catch (err) {
             set({ err: "Something went wrong" })
         } finally {
@@ -109,7 +122,16 @@ export const useAppointmentStore = create<appointmentState>((set, get) => ({
         set({ optionsLoading: true })
         try {
             const res = await appointment.decline(id)
-            if (res.data.status !== "success") set({ err: "Failed to decline Appointment" })
+            if (res.data.status === "success") {
+                set((state) => ({
+                    appointments: state.appointments.map((appt) =>
+                        appt._id === id
+                            ? { ...appt, status: "declined" }
+                            : appt
+                    ),
+                }));
+            }
+            else set({ err: "Failed to decline Appointment" })
         } catch (err) {
             set({ err: "Something went wrong" })
         } finally {
@@ -132,5 +154,23 @@ export const useAppointmentStore = create<appointmentState>((set, get) => ({
         if (res.data.status === "success")
             return res.data.data
         else return []
+    },
+    updateAppointment: async (data) => {
+        try {
+            const res = await appointment.updateAppointment(data)
+            if (res.data.status == "success") {
+                set((state) => ({
+                    appointments: state.appointments.map((appt) =>
+                        appt._id === data._id
+                            ? { ...appt, ...data }
+                            : appt
+                    ),
+                }));
+            }
+        } catch (err) {
+            set({ err: "Error" })
+        } finally {
+            set({ loading: false })
+        }
     }
 }));

@@ -1,19 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router";
-import type { Clinic } from "../types/Clinic";
-import { clinic } from "../services/clinic";
+import { useClinicStore } from "../store/clinic.store";
+import Spinner from "./Spinner";
 
 
 export default function ClinicsSection() {
-    const [clinics, setClinics] = useState<Clinic[]>([])
+    const { clinics, loadClinics, loading } = useClinicStore()
     useEffect(() => {
-        const loadClinics = async () => {
-            const response = await clinic.getClinics()
-            if (response.data.status == "success")
-                setClinics(response.data.data)
-        }
         loadClinics()
-    })
+    }, [loadClinics])
     return (
         <section className="py-20 bg-gray-50" dir="rtl">
             <div className="max-w-7xl mx-auto px-6">
@@ -31,34 +26,36 @@ export default function ClinicsSection() {
                 </div>
 
                 {/* Cards */}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {
+                    loading ? <Spinner /> :
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-                    {clinics.map((clinic) => (
-                        <Link
-                            key={clinic._id}
-                            to={`/clinic/${clinic.slug}`}
-                            className="bg-white rounded-2xl shadow-sm border hover:shadow-xl hover:-translate-y-1 transition p-6 block"
-                        >
-                            <div className="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl mb-4">
-                                {clinic.clinicName.charAt(0)}
-                            </div>
+                            {clinics.map((clinic) => (
+                                <Link
+                                    key={clinic._id}
+                                    to={`/clinic/${clinic.slug}`}
+                                    className="bg-white rounded-2xl shadow-sm border hover:shadow-xl hover:-translate-y-1 transition p-6 block"
+                                >
+                                    <div className="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl mb-4">
+                                        {clinic.clinicName.charAt(0)}
+                                    </div>
 
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                {clinic.clinicName}
-                            </h3>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                        {clinic.clinicName}
+                                    </h3>
 
-                            <p className="text-gray-600 text-sm leading-7 mb-5">
-                                {clinic.description}
-                            </p>
+                                    <p className="text-gray-600 text-sm leading-7 mb-5">
+                                        {clinic.description}
+                                    </p>
 
-                            <span className="text-blue-600 font-semibold text-sm">
-                                زيارة صفحة العيادة ←
-                            </span>
-                        </Link>
-                    ))}
+                                    <span className="text-blue-600 font-semibold text-sm">
+                                        زيارة صفحة العيادة ←
+                                    </span>
+                                </Link>
+                            ))}
 
-                </div>
-
+                        </div>
+                }
             </div>
         </section>
     );

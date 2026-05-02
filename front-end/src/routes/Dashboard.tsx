@@ -61,9 +61,7 @@ export default function Dashboard() {
             <main className="flex-1 p-8 space-y-8">
                 {
                     clinicLoading ?
-                        <div className="flex justify-center items-center h-80">
-                            <Spinner size="lg" color="blue-500" />
-                        </div>
+                        <Spinner />
                         :
                         <Outlet />
                 }

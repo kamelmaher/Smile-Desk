@@ -3,13 +3,24 @@ const mongoose = require("mongoose")
 require("dotenv").config()
 const cors = require("cors")
 const cookieParser = require("cookie-parser")
-
 const app = express()
-app.use(express.json())
+const allowedOrigins = [
+    "http://localhost:5173",
+    process.env.WEBSITE_URL
+];
+
 app.use(cors({
-    origin: process.env.WEBSITE_URL,
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("CORS blocked"));
+        }
+    },
     credentials: true
 }));
+
+app.use(express.json())
 app.use(cookieParser())
 
 const dbUrl = process.env.DB_URL

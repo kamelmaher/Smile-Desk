@@ -12,5 +12,6 @@ export const appointment = {
     confirm: (id: string) => patch(`${baseUrl}/confirm/${id}`),
     decline: (id: string) => patch(`${baseUrl}/decline/${id}`),
     search: (term: string) => get(`${baseUrl}/search?term=${term}`),
-    getBooked: (date: string) => get(`${baseUrl}/booked?date=${date}`)
+    getBooked: (date: string) => get(`${baseUrl}/booked?date=${date}`),
+    updateAppointment: (data: Partial<Appointment>) => patch(`${baseUrl}`, data)
 };

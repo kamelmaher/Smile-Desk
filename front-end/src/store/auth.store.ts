@@ -8,10 +8,11 @@ import type { User } from "../types/User";
 type AuthState = {
     user: User | null;
     loading: boolean;
+    authLoading: boolean
     isAuthenticated: boolean;
     err: string | null,
-    register: (data: registerType) => Promise<void>,
-    login: (data: { email: string; password: string }) => Promise<void>;
+    register: (data: registerType) => Promise<{ success: boolean }>,
+    login: (data: { email: string; password: string }) => Promise<{ success: boolean }>;
     logout: () => Promise<void>;
     fetchUser: () => Promise<void>;
     updateUser: (data: Partial<User>) => Promise<void>
@@ -20,6 +21,7 @@ type AuthState = {
 export const useAuthStore = create<AuthState>((set) => ({
     user: null,
     loading: false,
+    authLoading: false,
     isAuthenticated: false,
     err: null,
 
@@ -47,40 +49,48 @@ export const useAuthStore = create<AuthState>((set) => ({
     },
 
     register: async (data) => {
-        set({ loading: true, err: null })
+        set({ authLoading: true, err: null })
         try {
             const response = await auth.register(data)
             if (response.data.status === "success") {
                 await useAuthStore.getState().fetchUser()
+                return { success: true }
             } else {
                 set({
                     err: "Something went wrong"
                 })
+                return { success: false }
             }
         } catch (err) {
             set({
                 err: "Something went wrong"
             })
+            return { success: false }
         } finally {
             set({
-                loading: false,
+                authLoading: false,
             })
         }
 
     },
 
     login: async (data) => {
-        set({ loading: true, err: null });
+        set({ authLoading: true, err: null });
         try {
             const response = await auth.login(data);
-            if (response.data.status === "success")
+            if (response.data.status === "success") {
                 await useAuthStore.getState().fetchUser();
-            else
+                return { success: true }
+            }
+            else {
                 set({ err: response.data.data || "invalid credintials" })
+                return { success: false }
+            }
         } catch (err) {
             set({ err: "something went wrong" })
+            return { success: false }
         } finally {
-            set({ loading: false })
+            set({ authLoading: false })
         }
     },
 

@@ -9,10 +9,11 @@ import Pagination from "../../Paginiation";
 
 export default function Appointments() {
 
-    const { appointments, loading, setPage, page, upComingAppointments, todayAppointments, expiredAppointments, search, searchResults } = useAppointmentStore()
+    const { appointments, loading, setPage, page, totalPages, upComingAppointments, todayAppointments, expiredAppointments, search, searchResults } = useAppointmentStore()
     const [selectedType, setSelectedType] = useState("")
     const [searchTerm, setSearchTerm] = useState("")
     const debounce = useDebounce(searchTerm, 500)
+
     const handleChangeType = (type: string) => {
         setSelectedType(type)
         setSearchTerm("")
@@ -21,7 +22,6 @@ export default function Appointments() {
 
     useEffect(() => {
         if (debounce.trim()) {
-            console.log("search")
             search(debounce)
         }
     }, [debounce, search])
@@ -64,27 +64,31 @@ export default function Appointments() {
 
             {/* Filters */}
             <AppointmentsFilter handleChangeType={handleChangeType} handleSearch={setSearchTerm} />
-
-            {/* Appointments List */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {loading ? (
-                    <Spinner color="blue-500" />
-                ) : filteredAppointments.length > 0 ? (
-                    filteredAppointments.map((appointment) => (
-                        <Appointment
-                            key={appointment._id}
-                            appointment={appointment}
-                        />
-                    ))
-                ) : (
-                    <p className="text-gray-500">لا يوجد مواعيد</p>
-                )}
-            </div>
-
             {
-                (selectedType == "" || selectedType == appointmentStatus.declined) &&
-                <Pagination page={page} totalPages={3} onPageChange={handlePageChange} />
+                loading ? <Spinner /> :
+                    <>
+                        {/* Appointments List */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {
+                                filteredAppointments.length > 0 ? (
+                                    filteredAppointments.map((appointment) => (
+                                        <Appointment
+                                            key={appointment._id}
+                                            appointment={appointment}
+                                        />
+                                    ))
+                                ) : (
+                                    <p className="text-gray-500">لا يوجد مواعيد</p>
+                                )}
+                        </div>
+
+                        {
+                            (selectedType == "" || selectedType == appointmentStatus.declined) &&
+                            <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
+                        }
+                    </>
             }
-        </div>
+
+        </div >
     );
 }

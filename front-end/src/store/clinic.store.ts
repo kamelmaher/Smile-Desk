@@ -3,6 +3,9 @@ import { clinic } from "../services/clinic";
 import type { Clinic } from "../types/Clinic";
 type clinicState = {
     loading: boolean,
+    page: number,
+    totalPages: number,
+    setPage: (page: number) => void,
     updateLoading: boolean,
     clinicLoading: boolean,
     err: string | null,
@@ -11,10 +14,12 @@ type clinicState = {
     loadClinics: (page?: number) => Promise<void>
     getClinicBySlug: (slug: string) => Promise<void>
     getUserClinic: () => Promise<void>
-    updateClinic: (data: Partial<Clinic>) => Promise<void>
 }
 export const useClinicStore = create<clinicState>((set, get) => ({
     loading: false,
+    page: 1,
+    totalPages: 0,
+    setPage: (page) => set({ page }),
     updateLoading: false,
     clinicLoading: false,
     err: null,
@@ -26,7 +31,8 @@ export const useClinicStore = create<clinicState>((set, get) => ({
             const response = await clinic.getClinics(page || 1)
             if (response.data.status === "success") {
                 set({
-                    clinics: response.data.data
+                    clinics: response.data.data,
+                    totalPages: response.data.pages
                 })
             } else set({ err: response.data.data })
         } catch (err) {
@@ -62,16 +68,4 @@ export const useClinicStore = create<clinicState>((set, get) => ({
             set({ loading: false })
         }
     },
-    updateClinic: async (data) => {
-        set({ updateLoading: true })
-        try {
-            const res = await clinic.updateClinic(data)
-            if (res.data.status === "success") set({ selectedClinic: res.data.data })
-            else set({ err: "updating failed" })
-        } catch (err) {
-            set({ err: "Something went wrong" })
-        } finally {
-            set({ updateLoading: false })
-        }
-    }
 }))

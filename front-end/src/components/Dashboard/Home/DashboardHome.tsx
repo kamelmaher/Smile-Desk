@@ -2,14 +2,10 @@ import { useAppointmentStore } from "../../../store/appointment.store"
 import { useAuthStore } from "../../../store/auth.store"
 import Spinner from "../../Spinner"
 import AppointmentsList from "./AppointmentsList"
-import { useEffect } from "react"
 
 export default function DashboardHome() {
     const { todayAppointments, upComingAppointments, loading } = useAppointmentStore()
     const { user } = useAuthStore()
-    useEffect(() => {
-        console.log(upComingAppointments)
-    }, [upComingAppointments, loading])
     return <>
         {/* Header */}
         <div>
@@ -24,9 +20,7 @@ export default function DashboardHome() {
         </div>
         {
             loading ?
-                <div className="flex justify-center items-center ">
-                    <Spinner color="blue-500" />
-                </div>
+                <Spinner />
                 :
                 <>
                     {/* Statics */}

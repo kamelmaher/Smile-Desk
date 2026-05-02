@@ -7,7 +7,8 @@ const getClinics = async (req, res) => {
     const page = req.query.page || 1
     const skip = (page - 1) * MAIN_LIMIT
     const clinics = await Clinic.find().limit(MAIN_LIMIT).skip(skip)
-    res.json({ status: statusText.SUCCESS, data: clinics })
+    const total = await Clinic.countDocuments()
+    res.json({ status: statusText.SUCCESS, data: clinics, pages: Math.ceil(total / MAIN_LIMIT) })
 }
 
 const getClinicBySlug = async (req, res) => {

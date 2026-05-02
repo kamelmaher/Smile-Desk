@@ -11,12 +11,19 @@ const createAppointment = async (req, res) => {
 
 const loadAppointments = async (req, res) => {
     const user = req.user;
-    const page = req.qurey
+    const page = req.query.page
+    // res.send(req.query.page)
     const skip = MAIN_LIMIT * (+page - 1)
     if (!user) return res.json({ status: statusText.ERROR, data: "UnAuthorized" })
     const appointments = await Appointment.find({ clinicId: user.clinicId }).limit(MAIN_LIMIT).skip(skip)
     if (appointments.length == 0) return res.json({ status: statusText.FAIL, data: "No Appointments for this Clinic" })
-    res.json({ status: statusText.SUCCESS, data: appointments })
+
+    const total = await Appointment.countDocuments({ clinicId: user.clinicId });
+    res.json({
+        status: statusText.SUCCESS,
+        data: appointments,
+        pages: Math.ceil(total / MAIN_LIMIT)
+    });
 }
 
 const getTodayAppointments = async (req, res) => {

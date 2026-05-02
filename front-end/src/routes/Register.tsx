@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/auth.store';
 import Spinner from '../components/Spinner';
 
 const RegisterPage: React.FC = () => {
-    const { register, loading, err } = useAuthStore()
+    const { register, authLoading, err } = useAuthStore()
     const [formData, setFormData] = useState({
         userName: '',
         email: '',
@@ -17,8 +17,8 @@ const RegisterPage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await register(formData)
-        if (!err) navigate("/")
+        const res = await register(formData)
+        if (res.success) navigate("/")
     };
 
     return (
@@ -124,7 +124,7 @@ const RegisterPage: React.FC = () => {
                             onClick={handleSubmit}
                         >
                             {
-                                loading ? <Spinner size='sm' /> :
+                                authLoading ? <Spinner color='white' /> :
                                     <>
                                         إنشاء الحساب
                                     </>
