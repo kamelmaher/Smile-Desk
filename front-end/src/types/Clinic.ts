@@ -8,6 +8,8 @@ export type Clinic = {
     address?: string
     slug: string
     logo?: string
+    createdAt: string
+    validTo: string
     workingHours?: WorkingHours
 }
 

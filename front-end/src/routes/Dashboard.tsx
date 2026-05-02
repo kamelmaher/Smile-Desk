@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { NavLink, Outlet } from "react-router";
+import { NavLink, Outlet, useNavigate } from "react-router";
 import Spinner from "../components/Spinner";
 import { dashboardPages } from "../data/constants";
 import { useAppointmentStore } from "../store/appointment.store";
@@ -7,8 +7,16 @@ import { useClinicStore } from "../store/clinic.store";
 
 export default function Dashboard() {
     const { getTodayAppointments, getUpcomingAppointments, loadAppointments, getExpiredAppointments, page } = useAppointmentStore()
-    const { getUserClinic, selectedClinic, loading: clinicLoading } = useClinicStore()
+    const { getUserClinic, selectedClinic, loading: clinicLoading, err } = useClinicStore()
+    const navigate = useNavigate()
 
+    useEffect(() => {
+        if (!clinicLoading)
+            if (err)
+                navigate("/")
+
+    }, [navigate, selectedClinic, clinicLoading, err])
+    
     useEffect(() => {
         const loadData = async () => {
             try {

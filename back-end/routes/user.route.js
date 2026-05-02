@@ -7,8 +7,10 @@ const { login, register, me, logout, updateUser } = require("../controllers/user
 // Middlewares
 const validate = require("../middleware/validate.middleware")
 const verifyToken = require("../middleware/verifyToken")
+
 // Validations 
 const { registerSchema, loginSchema } = require("../validations/auth.validation")
+const verifyManager = require("../middleware/verifyManager")
 
 
 
@@ -19,5 +21,5 @@ router.post("/logout", logout)
 
 router.get("/me", verifyToken, me)
 router.patch("/", verifyToken, updateUser)
-
+router.patch("/subscribe", verifyToken, verifyManager,)
 module.exports = router

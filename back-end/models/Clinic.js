@@ -47,7 +47,7 @@ const clinicSchema = new mongoose.Schema({
                 end: String
             }
         ],
-        defaultValue: DEFAULT_CLINIC_WORKING_HOURS
+        default: DEFAULT_CLINIC_WORKING_HOURS
     }
 })
 

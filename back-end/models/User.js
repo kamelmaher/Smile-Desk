@@ -10,7 +10,11 @@ const userSchema = new mongoose.Schema({
     phoneNumber: String,
     role: {
         type: String,
-        enum: [roles.ADMIN, roles.USER, roles.MANAGER]
+        enum: [roles.ADMIN, roles.MANAGER]
+    },
+    isActive: {
+        type: Boolean,
+        default: true
     }
 })
 

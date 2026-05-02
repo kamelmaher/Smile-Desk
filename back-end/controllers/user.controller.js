@@ -4,6 +4,7 @@ const statusText = require("../data/statusText")
 const bcrypt = require("bcryptjs")
 const roles = require("../data/roles")
 const jwtGenerator = require("../utils/jwtGenerator")
+const getSlug = require("../utils/geSlug")
 
 const login = async (req, res) => {
     const { email, password } = req.body
@@ -55,25 +56,22 @@ const register = async (req, res) => {
             phoneNumber,
             role: roles.ADMIN,
         })
-
-
         // create clinic
         const slug = getSlug(clinicName)
         const clinic = await Clinic.create({
             userId: newUser._id,
             clinicName,
             slug,
-            description
+            description: description
         })
 
         // generate token
-        const token = await jwtGenerator({ _id: newUser.id, clinicId: newUser.clinicId })
+        const token = await jwtGenerator({ _id: newUser.id, clinicId: clinic._id, role: newUser.role })
 
         //update user
         await User.updateOne(
             { _id: newUser._id },
             { $set: { clinicId: clinic._id } },
-            { $set: { token } },
         )
         res.cookie("token", token, {
             httpOnly: true,
@@ -83,7 +81,7 @@ const register = async (req, res) => {
         });
         res.json({ status: statusText.SUCCESS })
     } catch (err) {
-        res.json({ staus: statusText.ERROR, data: "Something Went Wrong" })
+        res.json({ status: statusText.ERROR, data: err })
     }
 }
 
@@ -112,6 +110,11 @@ const updateUser = async (req, res) => {
     } catch (err) {
         res.json({ status: statusText.ERROR, data: "Something went wrong" })
     }
+}
+
+const subscribe = async (req, res) => {
+    const user = req.user
+    const updated = await User.findByIdAndUpdate(user._id, { isActive: true })
 }
 
 module.exports = {
