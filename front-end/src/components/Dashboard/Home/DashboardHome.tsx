@@ -46,7 +46,7 @@ export default function DashboardHome() {
                     </div>
 
                     {/* Content Grid */}
-                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid lg:grid-cols-2 gap-6">
                         {/* Schedule */}
                         <AppointmentsList title="اليوم" list={todayAppointments} />
                         {/* Upcoming */}

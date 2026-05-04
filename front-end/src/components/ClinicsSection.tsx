@@ -39,7 +39,7 @@ export default function ClinicsSection() {
                                     <div className="w-25 h-25 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl mb-4">
                                         {
                                             clinic.logo ?
-                                                <img src={clinic.logo} alt="" />
+                                                <img src={clinic.logo} alt="Clinic Image" loading="lazy" />
                                                 :
                                                 clinic.clinicName.charAt(0)
                                         }

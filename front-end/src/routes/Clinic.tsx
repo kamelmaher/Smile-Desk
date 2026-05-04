@@ -58,6 +58,7 @@ export default function ClinicPage() {
                                         src={selectedClinic.logo}
                                         alt="Clinic Interior"
                                         className="w-full h-[400px] object-cover"
+                                        loading="lazy"
                                     />
                                 </div>
                             </div>

@@ -49,20 +49,20 @@ const AppointmentsList = ({ list, title }: AppointmentsListProps) => {
                     `}
                         >
                             {/* MAIN INFO */}
-                            <div className="flex justify-between items-center">
+                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-0">
+
                                 <p className="text-gray-700 font-medium">
                                     {getAppointmentHour(e.date)} - {e.patientName}
                                 </p>
 
-                                {title === "في الأيام العشر القادمة" ? (
-                                    <span className="text-sm bg-blue-600 text-white px-3 py-1 rounded-full">
-                                        {getAppointmentDate(e.date)}
-                                    </span>
-                                ) : (
-                                    <span className="text-xs bg-blue-600 text-white px-3 py-1 rounded-full">
-                                        محجوز
-                                    </span>
-                                )}
+                                <span
+                                    className={`text-sm bg-blue-600 text-white px-3 py-1 rounded-full w-full lg:w-auto text-center lg:text-right`}
+                                >
+                                    {title === "في الأيام العشر القادمة"
+                                        ? getAppointmentDate(e.date)
+                                        : "محجوز"}
+                                </span>
+
                             </div>
 
                             {/* DETAILS */}
