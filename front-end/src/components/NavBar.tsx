@@ -118,16 +118,17 @@ const NavBar = () => {
             >
                 <div className="px-6 pb-6 flex flex-col gap-4 bg-white/90 backdrop-blur-lg">
 
-                    <NavLink to="#features" onClick={() => setIsOpen(false)}>
+                    <NavLink to="/features" onClick={() => setIsOpen(false)}>
                         المميزات
+                    </NavLink>
+
+
+                    <NavLink to="/pricing" onClick={() => setIsOpen(false)}>
+                        الأسعار
                     </NavLink>
 
                     <NavLink to="/clinics" onClick={() => setIsOpen(false)}>
                         العيادات
-                    </NavLink>
-
-                    <NavLink to="#pricing" onClick={() => setIsOpen(false)}>
-                        الأسعار
                     </NavLink>
 
                     {loading ? (

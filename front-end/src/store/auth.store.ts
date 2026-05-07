@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { create } from "zustand";
 import { auth } from "../services/auth";
 import type { registerType } from "../types/authTypes";
@@ -33,7 +34,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             const res = await auth.me();
             if (res.data.status == "success")
                 set({
-                    user: res.data,
+                    user: res.data.data,
                     isAuthenticated: true,
                     loading: false,
                 });

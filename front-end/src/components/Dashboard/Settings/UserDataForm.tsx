@@ -6,7 +6,6 @@ import Spinner from "../../Spinner"
 const UserDataForm = () => {
     const { user, updateUser, loading } = useAuthStore()
     const [form, setForm] = useState(user || {} as User)
-
     const handleSubmitForm = async (e: React.FormEvent) => {
         e.preventDefault()
         await updateUser(form)
@@ -15,6 +14,7 @@ const UserDataForm = () => {
     const handleChangeData = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value })
     }
+
     return (
         <form
             onSubmit={handleSubmitForm}

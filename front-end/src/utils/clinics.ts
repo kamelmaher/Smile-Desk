@@ -1,48 +1,50 @@
 import type { WorkingHours } from "../types/Clinic";
 
-const DAYS = [
-    "الأحد",
-    "الاثنين",
-    "الثلاثاء",
-    "الأربعاء",
-    "الخميس",
-    "الجمعة",
-    "السبت",
-];
+import dayjs from 'dayjs';
+
+const DAYS = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
 
 export function formatWorkingHours(hours: WorkingHours[]) {
-    if (!hours) return
+    if (!hours || !hours.length) return "غير محدد";
+
     const openDays = hours
         .filter((d) => d.isOpen)
         .sort((a, b) => a.day - b.day);
 
     if (!openDays.length) return "مغلق";
 
-    const start = openDays[0];
-    let end = openDays[0];
-
-    for (let i = 1; i < openDays.length; i++) {
-        if (
-            openDays[i].day === end.day + 1 &&
-            openDays[i].start === start.start &&
-            openDays[i].end === start.end
-        ) {
-            end = openDays[i];
-        } else {
-            break;
-        }
-    }
-
     const formatTime = (t: string) => {
-        const [h] = t.split(":");
-        const hour = Number(h);
-        return hour > 12 ? `${hour - 12} مساءً` : `${hour} صباحًا`;
+        return dayjs(`2026-01-01T${t}`).format('h:mm A')
+            .replace('AM', 'صباحاً')
+            .replace('PM', 'مساءً');
     };
 
-    const dayRange =
-        start.day === end.day
-            ? DAYS[start.day]
-            : `${DAYS[start.day]} - ${DAYS[end.day]}`;
+    const results: string[] = [];
+    let i = 0;
 
-    return `${dayRange}: ${formatTime(start.start)} - ${formatTime(start.end)}`;
+    while (i < openDays.length) {
+        const startIdx = i;
+
+        while (
+            i + 1 < openDays.length &&
+            openDays[i + 1].day === openDays[i].day + 1 &&
+            openDays[i + 1].start === openDays[startIdx].start &&
+            openDays[i + 1].end === openDays[startIdx].end
+        ) {
+            i++;
+        }
+
+        const startDay = openDays[startIdx];
+        const endDay = openDays[i];
+
+        const dayRange = startIdx === i
+            ? DAYS[startDay.day]
+            : `${DAYS[startDay.day]} - ${DAYS[endDay.day]}`;
+
+        results.push(`${dayRange}: ${formatTime(startDay.start)} - ${formatTime(startDay.end)}`);
+
+        i++;
+    }
+
+    return results.join(' | ');
 }

@@ -64,7 +64,7 @@ export const useAppointmentStore = create<appointmentState>((set, get) => ({
             set({ loading: true })
             const res = await appointment.loadAppointments(page)
             if (res.data.status == "success")
-                set({ appointments: res.data.data, totalPages: res.data.totalPages })
+                set({ appointments: res.data.data, totalPages: res.data.pages })
             else set({ err: res.data.data })
         } catch (err) {
             set({ err: "Something went Wrong" })

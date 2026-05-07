@@ -161,20 +161,6 @@ export default function Settings() {
 
             <UserDataForm />
 
-            {/* Danger Zone */}
-            <div className="bg-white border border-red-200 rounded-2xl p-6">
-
-                <h3 className="font-bold text-red-500">منطقة خطيرة</h3>
-                <p className="text-gray-500 text-sm mt-1">
-                    حذف الحساب لا يمكن التراجع عنه
-                </p>
-
-                <button className="mt-4 bg-red-500 text-white px-4 py-2 rounded-xl">
-                    حذف الحساب
-                </button>
-
-            </div>
-
         </div>
     );
 }
