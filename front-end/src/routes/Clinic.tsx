@@ -14,6 +14,7 @@ export default function ClinicPage() {
         if (!slug) return;
         getClinicBySlug(slug);
     }, [slug, getClinicBySlug]);
+    
     useEffect(() => {
         scrollTo(0, 0)
     }, [])
@@ -27,7 +28,6 @@ export default function ClinicPage() {
                     <div className="bg-white pt-10 pb-20 px-6">
                         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
 
-                            {/* Text Content (Left) */}
                             <div className="text-right space-y-6">
                                 <h1 className="text-5xl font-bold text-gray-900 leading-tight">
                                     صحتك أولويتنا
@@ -51,7 +51,6 @@ export default function ClinicPage() {
                                 </div>
                             </div>
 
-                            {/* Image (Right) */}
                             <div className="relative">
                                 <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl">
                                     <img
@@ -65,7 +64,6 @@ export default function ClinicPage() {
                         </div>
                     </div>
 
-                    {/* Features Strip (Overlapping/Bottom of Hero) */}
                     <div className="max-w-6xl mx-auto px-6 -mt-16">
                         <div className="bg-white p-6 rounded-2xl shadow-xl grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                             {features.map((item, idx) => (
@@ -81,7 +79,6 @@ export default function ClinicPage() {
                         </div>
                     </div>
 
-                    {/* Content Section (Info + Booking) */}
                     <div id="about" className="max-w-6xl mx-auto px-6 py-16 grid md:grid-cols-3 gap-8">
                         {/* About */}
                         <div className="md:col-span-2 bg-white p-8 rounded-2xl shadow-sm">
@@ -124,7 +121,6 @@ export default function ClinicPage() {
                         </div>
                     </div>
 
-                    {/* Booking Section */}
                     <div className="max-w-4xl mx-auto px-6 pb-20" id="book-appointment">
                         <div className="bg-white p-10 rounded-2xl shadow-md text-center">
                             <h2 className="text-3xl font-bold mb-3">احجز موعدك الآن</h2>

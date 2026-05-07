@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import Spinner from '../components/Spinner';
 import { useAuthStore } from '../store/auth.store';
@@ -15,6 +15,9 @@ const LoginPage: React.FC = () => {
             navigate("/")
     };
 
+    useEffect(() => {
+        scrollTo(0, 0)
+    }, [])
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
             <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-gray-100">

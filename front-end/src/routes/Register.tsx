@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { useAuthStore } from '../store/auth.store';
 import Spinner from '../components/Spinner';
@@ -21,6 +21,9 @@ const RegisterPage: React.FC = () => {
         if (res.success) navigate("/")
     };
 
+    useEffect(() => {
+        scrollTo(0, 0)
+    }, [])
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
             <div className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">

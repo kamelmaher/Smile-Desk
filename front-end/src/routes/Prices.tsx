@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { plansData } from "../data/constants";
 
 const handleSubscribe = (planName: string, price: string) => {
@@ -22,6 +23,9 @@ const handleSubscribe = (planName: string, price: string) => {
     document.body.removeChild(link);
 };
 export default function Pricing() {
+    useEffect(() => {
+        scrollTo(0, 0)
+    }, [])
     return (
         <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
             <div className="container mx-auto px-6 text-center">

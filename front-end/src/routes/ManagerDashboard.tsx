@@ -14,8 +14,10 @@ const ManagerDashboard = () => {
     }, [getUsers, loadClinics])
     const handleChange = async (clinicId: string, plan: string) => {
         await subscribe(clinicId, plan)
-        console.log("clinic updated")
     }
+    useEffect(() => {
+        scrollTo(0, 0)
+    }, [])
     return (
         <div className="p-6">
             <h1 className="text-xl font-semibold mb-6">لوحة تحكم المدير</h1>

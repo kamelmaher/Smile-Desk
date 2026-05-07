@@ -1,8 +1,13 @@
 import { motion } from "framer-motion"
 import { features } from "../data/constants";
 import { NavLink } from "react-router-dom";
+import { useEffect } from "react";
 
 export default function FeaturesPage() {
+    useEffect(() => {
+        scrollTo(0, 0)
+    }, [])
+
     return (
         <div className="bg-white">
 
@@ -121,9 +126,9 @@ export default function FeaturesPage() {
                         ابدأ الآن وجرب النظام مجاناً لمدة 7 أيام
                     </p>
 
-                    <button className="bg-white text-blue-600 px-8 py-3 rounded-xl font-medium hover:scale-105 transition">
+                    <NavLink to={"/register"} className="bg-white text-blue-600 px-8 py-3 rounded-xl font-medium hover:scale-105 transition">
                         ابدأ الآن
-                    </button>
+                    </NavLink>
 
                 </div>
             </section>

@@ -10,6 +10,9 @@ export default function ClinicsPage() {
     useEffect(() => {
         loadClinics(page)
     }, [loadClinics, page])
+    useEffect(() => {
+        scrollTo(0, 0)
+    }, [])
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4" dir="rtl">
             <div className="max-w-6xl mx-auto">

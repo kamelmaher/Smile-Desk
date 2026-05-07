@@ -29,6 +29,7 @@ export default function Dashboard() {
     useEffect(() => {
         loadAppointments(page)
     }, [loadAppointments, page])
+
     useEffect(() => {
         if (!clinicLoading)
             if (err)
@@ -39,6 +40,9 @@ export default function Dashboard() {
         getUserClinic()
     }, [getUserClinic])
 
+    useEffect(() => {
+        scrollTo(0, 0)
+    }, [])
     return (
         <div className="min-h-screen bg-[#f6f9fc] flex flex-col md:flex-row">
 

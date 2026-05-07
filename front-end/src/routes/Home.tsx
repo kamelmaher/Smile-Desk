@@ -1,10 +1,13 @@
 import { NavLink } from "react-router";
 import ClinicsSection from "../components/ClinicsSection";
 import FeatureCard from "../components/Feature";
+import { useEffect } from "react";
 
 
 const HomePage = () => {
-
+  useEffect(() => {
+    scrollTo(0, 0)
+  }, [])
   return (
     <div>
       {/* 2. Hero Section */}
