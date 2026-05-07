@@ -2,16 +2,24 @@ import { plansData } from "../data/constants";
 
 const handleSubscribe = (planName: string, price: string) => {
     const message = `مرحباً، أرغب بالاشتراك في نظام SmileDesk
-    
+
 الخطة: ${planName}
 السعر: ${price}
 
 هل يمكن تزويدي بتفاصيل الدفع؟`;
 
-    const phone = "972569691698"
+    const phone = "972569691698";
 
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank");
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
 export default function Pricing() {
     return (
