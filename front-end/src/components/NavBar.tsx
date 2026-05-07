@@ -30,9 +30,12 @@ const NavBar = () => {
             <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
 
                 {/* Logo */}
-                <NavLink to="/" className="text-2xl font-bold text-blue-600" onClick={() => setIsOpen(false)}>
-                    SmileDesk
-                </NavLink>
+                <div className='w-12 flex gap-1 items-center'>
+                    <img src="logo.png" alt="logo" className='cover w-full' />
+                    <NavLink to="/" className="text-2xl font-bold text-blue-600" onClick={() => setIsOpen(false)}>
+                        SmileDesk
+                    </NavLink>
+                </div>
 
                 {/* Desktop */}
                 <div className="hidden md:flex items-center gap-6">

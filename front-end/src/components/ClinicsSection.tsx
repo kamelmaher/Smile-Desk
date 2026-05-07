@@ -34,7 +34,7 @@ export default function ClinicsSection() {
                                 <Link
                                     key={clinic._id}
                                     to={`/clinic/${clinic.slug}`}
-                                    className="bg-white rounded-2xl shadow-sm border hover:shadow-xl hover:-translate-y-1 transition p-6 block"
+                                    className="bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition p-6 block"
                                 >
                                     <div className="w-25 h-25 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl mb-4">
                                         {
