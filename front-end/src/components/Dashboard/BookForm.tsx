@@ -6,6 +6,10 @@ import { useClinicStore } from "../../store/clinic.store";
 import type { Appointment } from "../../types/Appointment";
 import TimeSelector from "../TimeSelector";
 import Spinner from "../Spinner";
+import { useSmsStore } from "../../store/sms.store";
+import { showError, showSuccess } from "../../utils/toast";
+import OtpForm from "./OtpForm";
+import { appointment } from "../../services/appointment";
 
 
 export default function BookingForm() {
@@ -13,6 +17,8 @@ export default function BookingForm() {
     const { createAppointment, loading, err, } = useAppointmentStore()
     const { getClinicBySlug, selectedClinic } = useClinicStore()
     const [open, setOpen] = useState(false);
+    const { sendOtp, verifyOtp } = useSmsStore()
+    const [showOtpForm, setShowOtpForm] = useState(false)
 
     const [formData, setFormData] = useState({
         patientName: "",
@@ -37,13 +43,30 @@ export default function BookingForm() {
         if (!selectedClinic._id) return
         const result = appointmentSchema.safeParse(formData)
         if (result.success) {
+            const isFoundFoundNumber = await appointment.checkPhoneNumber(formData.patientPhoneNumber, selectedClinic._id)
+            if (isFoundFoundNumber.data.status === "success") {
+                const res = await sendOtp({ sendTo: formData.patientPhoneNumber, clinicId: selectedClinic._id })
+                if (res.status == "success") {
+                    showSuccess(res.data)
+                    setShowOtpForm(true)
+                } else showError(res.data)
+            } else showError("لا يمكن حجز أكثر من موعدين")
+        }
+    };
+
+    const handleVerifyOtp = async (otp: string) => {
+        const { status, data } = await verifyOtp({ phoneNumber: formData.patientPhoneNumber, clinicId: selectedClinic._id, otp })
+        if (status === "success") {
+            setShowOtpForm(false)
             await createAppointment({ ...formData, clinicId: selectedClinic._id })
             if (!err) {
                 setOpen(false)
                 setFormData({} as Appointment)
             }
+        } else {
+            showError(data)
         }
-    };
+    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -72,86 +95,90 @@ export default function BookingForm() {
                     className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
                     dir="rtl"
                 >
-                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+                    {
+                        !showOtpForm ?
+                            <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
 
-                        {/* Header */}
-                        <div className="bg-blue-600 text-white p-4">
-                            <h2 className="text-lg font-bold">حجز موعد جديد</h2>
-                            <p className="text-sm text-blue-100">
-                                الرجاء تعبئة البيانات التالية
-                            </p>
-                        </div>
+                                {/* Header */}
+                                <div className="bg-blue-600 text-white p-4">
+                                    <h2 className="text-lg font-bold">حجز موعد جديد</h2>
+                                    <p className="text-sm text-blue-100">
+                                        الرجاء تعبئة البيانات التالية
+                                    </p>
+                                </div>
 
-                        {/* Form */}
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
+                                {/* Form */}
+                                <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
 
-                            <input
-                                name="patientName"
-                                placeholder="الاسم الكامل"
-                                value={formData.patientName}
-                                onChange={handleChange}
-                                className="w-full rounded-xl p-3 border border-gray-300 bg-white text-gray-700 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                                required
-                            />
+                                    <input
+                                        name="patientName"
+                                        placeholder="الاسم الكامل"
+                                        value={formData.patientName}
+                                        onChange={handleChange}
+                                        className="w-full rounded-xl p-3 border border-gray-300 bg-white text-gray-700 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                        required
+                                    />
 
-                            <input
-                                name="patientAddress"
-                                placeholder="العنوان"
-                                value={formData.patientAddress}
-                                onChange={handleChange}
-                                className="w-full rounded-xl p-3 border border-gray-300 bg-white text-gray-700 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                                required
-                            />
+                                    <input
+                                        name="patientAddress"
+                                        placeholder="العنوان"
+                                        value={formData.patientAddress}
+                                        onChange={handleChange}
+                                        className="w-full rounded-xl p-3 border border-gray-300 bg-white text-gray-700 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                        required
+                                    />
 
-                            <input
-                                name="patientPhoneNumber"
-                                placeholder="رقم الجوال"
-                                value={formData.patientPhoneNumber}
-                                onChange={handleChange}
-                                className="w-full rounded-xl p-3 border border-gray-300 bg-white text-gray-700 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                                required
-                            />
+                                    <input
+                                        name="patientPhoneNumber"
+                                        placeholder="رقم الجوال"
+                                        value={formData.patientPhoneNumber}
+                                        onChange={handleChange}
+                                        className="w-full rounded-xl p-3 border border-gray-300 bg-white text-gray-700 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                        required
+                                    />
 
-                            {/* Date & Time Selector */}
-                            <TimeSelector onSelect={handleSelect} workingHours={selectedClinic.workingHours!} />
+                                    {/* Date & Time Selector */}
+                                    <TimeSelector onSelect={handleSelect} workingHours={selectedClinic.workingHours!} />
 
 
-                            <textarea
-                                name="notes"
-                                placeholder="ملاحظات (اختياري)"
-                                value={formData.notes}
-                                onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                                rows={3}
-                                className="w-full rounded-xl p-3 border border-gray-300 bg-white text-gray-700 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
-                            {
-                                err &&
-                                <p className="text-center text-red-600 bg-red-50 border border-red-200 rounded-xl py-2 mt-3 text-sm font-medium">
-                                    {err}
-                                </p>
-                            }
+                                    <textarea
+                                        name="notes"
+                                        placeholder="ملاحظات (اختياري)"
+                                        value={formData.notes}
+                                        onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                                        rows={3}
+                                        className="w-full rounded-xl p-3 border border-gray-300 bg-white text-gray-700 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
+                                    {
+                                        err &&
+                                        <p className="text-center text-red-600 bg-red-50 border border-red-200 rounded-xl py-2 mt-3 text-sm font-medium">
+                                            {err}
+                                        </p>
+                                    }
 
-                            {/* Actions */}
-                            <div className="flex justify-between items-center pt-2">
+                                    {/* Actions */}
+                                    <div className="flex justify-between items-center pt-2">
 
-                                <button
-                                    type="button"
-                                    onClick={() => setOpen(false)}
-                                    className="text-gray-600 hover:text-black"
-                                >
-                                    إلغاء
-                                </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setOpen(false)}
+                                            className="text-gray-600 hover:text-black"
+                                        >
+                                            إلغاء
+                                        </button>
 
-                                <button
-                                    type="submit"
-                                    className="bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
-                                >
-                                    {loading ? <Spinner color="white" /> : "تأكيد الحجز"}
-                                </button>
+                                        <button
+                                            type="submit"
+                                            className="bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
+                                        >
+                                            {loading ? <Spinner color="white" /> : "تأكيد الحجز"}
+                                        </button>
 
+                                    </div>
+
+                                </form>
                             </div>
-
-                        </form>
-                    </div>
+                            : <OtpForm onVerify={handleVerifyOtp} />
+                    }
                 </div>
             )}
         </>

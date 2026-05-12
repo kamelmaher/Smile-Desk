@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { appointment } from "../services/appointment";
 import type { Appointment } from "../types/Appointment";
 import { showError, showSuccess } from "../utils/toast";
+import { sms } from "../services/sms";
 
 type appointmentState = {
     appointments: Appointment[]
@@ -26,6 +27,7 @@ type appointmentState = {
     search: (term: string) => Promise<void>
     getBooked: (date: string) => Promise<string[]>,
 }
+
 export const useAppointmentStore = create<appointmentState>((set, get) => ({
     loading: false,
     optionsLoading: false,
@@ -46,6 +48,7 @@ export const useAppointmentStore = create<appointmentState>((set, get) => ({
             if (response.data.status === "success") {
                 set({ appointments: [...get().appointments, response.data.data] })
                 showSuccess("تم انشاء الموعد بنجاح")
+                sms.pickAppointment({ clinicId: data.clinicId, date: data.date, patientName: data.patientName })
             }
             else {
                 set({ err: "error while creating appointment" })
@@ -117,6 +120,7 @@ export const useAppointmentStore = create<appointmentState>((set, get) => ({
         try {
             const res = await appointment.confirm(id)
             if (res.data.status === "success") {
+
                 set((state) => ({
                     appointments: state.appointments.map((appt) =>
                         appt._id === id
@@ -124,7 +128,11 @@ export const useAppointmentStore = create<appointmentState>((set, get) => ({
                             : appt
                     ),
                 }));
+
                 showSuccess("تم التاكيد بنجاح")
+                const appointment = get().appointments.find(e => e._id == id)!
+                if (!appointment) return
+                sms.confirmAppointment({ clinicId: appointment.clinicId, patientName: appointment.patientName, date: appointment.date, status: "accepted", patientPhoneNumber: appointment.patientPhoneNumber })
             }
             else {
                 showError(res.data.data)
@@ -150,6 +158,9 @@ export const useAppointmentStore = create<appointmentState>((set, get) => ({
                     ),
                 }));
                 showSuccess("تم الالغاء بنجاح")
+                const appointment = get().appointments.find(e => e._id == id)!
+                if (!appointment) return
+                sms.confirmAppointment({ clinicId: appointment.clinicId, patientName: appointment.patientName, date: appointment.date, status: "declined", patientPhoneNumber: appointment.patientPhoneNumber })
             }
             else showError(res.data.data)
         } catch (err) {
@@ -177,5 +188,4 @@ export const useAppointmentStore = create<appointmentState>((set, get) => ({
             return res.data.data
         else return []
     }
-
 }));

@@ -9,6 +9,7 @@ const validate = require("../middleware/validate.middleware")
 const verifyToken = require("../middleware/verifyToken")
 const verifyManager = require("../middleware/verifyManager")
 const limiter = require("../middleware/limiter")
+
 // Validations 
 const { registerSchema, loginSchema } = require("../validations/auth.validation")
 

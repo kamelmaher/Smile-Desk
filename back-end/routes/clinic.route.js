@@ -14,7 +14,6 @@ router.get("/", getClinics)
 router.get("/slug/:slug", getClinicBySlug)
 
 // User Clinic
-
 router.patch("/subscribe", verifyToken, verifyManager, subscribe)
 
 router.use(verifyToken)

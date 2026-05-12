@@ -1,20 +1,25 @@
 const Clinic = require("../models/Clinic")
 const statusText = require("../data/statusText")
 const dayjs = require("dayjs")
+const plans = require("../data/plans")
 
 module.exports = async (req, res, next) => {
-    const user = req.user
-    if (!user) return res.json({ status: statusText.ERROR, data: "المستخدم غير موجود" })
+    const { clinicId } = req.body
 
+    if (!clinicId)
+        return res.json({
+            status: statusText.ERROR,
+            data: "العيادة غير موجودة"
+        });
 
-    const clinic = await Clinic.findById(user.clinicId)
+    const clinic = await Clinic.findById(clinicId)
     if (!clinic)
         return res.json({
             status: statusText.ERROR,
             data: "العيادة غير موجودة"
         });
 
-    if (!clinic.validTo) {
+    if (!clinic.validTo || !clinic.plan) {
         return res.status(403).json({
             status: statusText.ERROR,
             data: "لا يوجد اشتراك نشط لهذه العيادة"
@@ -28,6 +33,11 @@ module.exports = async (req, res, next) => {
             data: "انتهت صلاحية اشتراك العيادة، يرجى التجديد للمتابعة"
         });
     }
-    req.clinic = clinic
-    next()
+    
+    if (clinic.plan === plans.ANNUAL || clinic.plan === plans.MONTHLY || clinic.plan === plans.LIFETIME) {
+        req.clinic = clinic
+        return next()
+    }
+
+    return res.json({ status: statusText.ERROR, data: "غير مشترك في خدمة الرسائل" })
 }

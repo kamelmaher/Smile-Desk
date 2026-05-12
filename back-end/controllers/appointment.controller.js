@@ -2,26 +2,13 @@ const Appointment = require("../models/Appointment")
 const statusText = require("../data/statusText")
 const { MAIN_LIMIT } = require("../data/constants")
 const { ACCEPTED, DECLINED } = require("../data/appointmentStatus")
-const { formatDate } = require("../utils/index")
 const { removeCancelled, checkIfTwoPendingAppointments } = require("../utils/appointments")
-const { json } = require("zod")
 const dayjs = require('dayjs');
 
 const createAppointment = async (req, res) => {
     const data = req.body;
     try {
         if (!data.clinicId) return res.json({ status: statusText.ERROR, data: "يجب اختيار عيادة" })
-
-        // Check if the phone number exists and dont have a pending appointment
-        const phoneNumber = data.patientPhoneNumber
-        if (!phoneNumber) return res.json({ status: statusText.ERROR, data: "يجب ادخال رقم الهاتف" })
-        const appointmentsWithPhoneNumbers = await Appointment.find({
-            clinicId: data.clinicId,
-            patientPhoneNumber: phoneNumber
-        })
-
-        if (checkIfTwoPendingAppointments(appointmentsWithPhoneNumbers))
-            return res.json({ status: statusText.ERROR, data: "لا يمكن حجز اكثر من موعدين" })
 
         if (!data.date) {
             return res.status(400).json({ status: statusText.ERROR, message: "التاريخ مطلوب" });
@@ -55,6 +42,7 @@ const createAppointment = async (req, res) => {
         });
 
     } catch (err) {
+        console.log(err)
         return res.status(500).json({
             status: statusText.ERROR,
             data: "حدث خطأ تقني، يرجى المحاولة لاحقاً"
@@ -161,8 +149,10 @@ const confirmAppointment = async (req, res) => {
     const { id } = req.params;
     if (!id) return res.json({ status: statusText.FAIL, data: "Id is required" })
     try {
-        const appointment = await Appointment.findOneAndUpdate({ _id: id }, { status: ACCEPTED })
-        if (appointment) return res.json({ status: statusText.SUCCESS, data: appointment })
+        const appointment = await Appointment.findByIdAndUpdate(id, { status: ACCEPTED }, { new: true })
+        if (appointment) {
+            return res.json({ status: statusText.SUCCESS, data: appointment })
+        }
         return res.json({ status: statusText.FAIL, data: "Failed Accept Appointment" })
     } catch (err) {
         return res.json({ status: statusText.ERROR, data: "Internal Server Error" })
@@ -173,8 +163,10 @@ const declineAppointment = async (req, res) => {
     const { id } = req.params;
     if (!id) return res.json({ status: statusText.FAIL, data: "Id is required" })
     try {
-        const appointment = await Appointment.findOneAndUpdate({ _id: id }, { status: DECLINED })
-        if (appointment) return res.json({ status: statusText.SUCCESS, data: appointment })
+        const appointment = await Appointment.findByIdAndUpdate(id, { status: ACCEPTED }, { new: true })
+        if (appointment) {
+            return res.json({ status: statusText.SUCCESS, data: appointment })
+        }
         return res.json({ status: statusText.FAIL, data: "Failed Decline Appointment" })
     } catch (err) {
         return res.json({ status: statusText.ERROR, data: "Internal Server Error" })
@@ -244,6 +236,26 @@ const getBooked = async (req, res) => {
     }
 };
 
+const checkPhoneNumber = async (req, res) => {
+    const phoneNumber = req.query.number;
+    const clinicId = req.body.clinicId
+    if (!clinicId) return res.json({ status: statusText.ERROR, data: "العيادة غير موجودة" })
+    if (!phoneNumber) return res.json({ status: statusText.ERROR, data: "يجب ادخال رقم الهاتف" })
+    try {
+        const appointmentsWithPhoneNumber = await Appointment.find({
+            clinicId: clinicId,
+            patientPhoneNumber: phoneNumber
+        })
+
+        if (checkIfTwoPendingAppointments(appointmentsWithPhoneNumber))
+            return res.json({ status: statusText.ERROR, data: "لا يمكن حجز اكثر من موعدين" })
+        return res.json({ status: statusText.SUCCESS })
+    } catch (err) {
+        return res.json({ status: statusText.ERROR })
+    }
+
+}
+
 module.exports = {
     createAppointment,
     loadAppointments,
@@ -253,5 +265,8 @@ module.exports = {
     confirmAppointment,
     declineAppointment,
     searchAppointments,
-    getBooked
+    getBooked,
+    checkPhoneNumber
 }
+
+

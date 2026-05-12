@@ -37,8 +37,10 @@ mongoose.connect(dbUrl).then(() => {
 const userRoutes = require("./routes/user.route")
 const clinicRoutes = require("./routes/clinic.route")
 const appointmentRoutes = require("./routes/appointment.route")
+const smsRoutes = require("./routes/sms.route")
 
 // Routes
 app.use("/user", userRoutes)
 app.use("/clinic", clinicRoutes)
 app.use("/appointment", appointmentRoutes)
+app.use("/sms", smsRoutes)

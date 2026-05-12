@@ -8,7 +8,8 @@ export const appointmentSchema = z.object({
 
     patientPhoneNumber: z
         .string()
-        .min(8, "Phone number is too short"),
+        .min(10, "الرجاء التاكد من رقم الهاتف")
+        .max(10, "الرجاء التاكد من رقم الهاتف"),
 
     patientEmail: z.string().email().optional().or(z.literal("")),
 

@@ -22,7 +22,6 @@ const appointmentSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    patientEmail: String,
     patientAddress: {
         type: String,
         reqiured: true
