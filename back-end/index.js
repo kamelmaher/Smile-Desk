@@ -38,9 +38,11 @@ const userRoutes = require("./routes/user.route")
 const clinicRoutes = require("./routes/clinic.route")
 const appointmentRoutes = require("./routes/appointment.route")
 const smsRoutes = require("./routes/sms.route")
+const staticsRoutes = require("./routes/statics.route")
 
 // Routes
 app.use("/user", userRoutes)
 app.use("/clinic", clinicRoutes)
 app.use("/appointment", appointmentRoutes)
 app.use("/sms", smsRoutes)
+app.use("/statics", staticsRoutes)

@@ -1,40 +1,25 @@
 import { useEffect } from "react";
-import { Outlet, useNavigate } from "react-router";
+import { Outlet } from "react-router";
 import Spinner from "../components/Spinner";
 import { useClinicStore } from "../store/clinic.store";
 import DashboardLinks from "../components/Dashboard/DashboardLinks";
 import { useAppointmentStore } from "../store/appointment.store";
+import { useStatics } from "../store/statics.store";
 
 export default function Dashboard() {
-    const { getUserClinic, selectedClinic, loading: clinicLoading, err } = useClinicStore()
-    const navigate = useNavigate()
-    const { getTodayAppointments, getUpcomingAppointments, loadAppointments, getExpiredAppointments, page } = useAppointmentStore()
+    const { getUserClinic, selectedClinic, loading } = useClinicStore()
+    const { getTodayAppointments } = useAppointmentStore()
 
     useEffect(() => {
         const loadData = async () => {
-            try {
-                await Promise.all([
-                    getUserClinic(),
-                    getTodayAppointments(),
-                    getUpcomingAppointments(),
-                    getExpiredAppointments(1),
-                ])
-            } catch (error) {
-                console.error(error)
-            }
+            await Promise.all([
+                getUserClinic(),
+                getTodayAppointments(),
+            ])
         }
         loadData()
-    }, [getExpiredAppointments, getTodayAppointments, getUpcomingAppointments, getUserClinic])
-
-    useEffect(() => {
-        loadAppointments(page)
-    }, [loadAppointments, page])
-
-    useEffect(() => {
-        if (!clinicLoading)
-            if (err)
-                navigate("/")
-    }, [navigate, clinicLoading, err])
+    }, [getTodayAppointments, getUserClinic])
+    const { getStatics } = useStatics()
 
     useEffect(() => {
         getUserClinic()
@@ -43,6 +28,12 @@ export default function Dashboard() {
     useEffect(() => {
         scrollTo(0, 0)
     }, [])
+
+    useEffect(() => {
+        if (!selectedClinic._id) return
+        getStatics(selectedClinic._id)
+    }, [getStatics, selectedClinic])
+
     return (
         <div className="min-h-screen bg-[#f6f9fc] flex flex-col md:flex-row">
 
@@ -69,7 +60,7 @@ export default function Dashboard() {
 
             {/* 🧠 Main Content */}
             <main className="flex-1 p-4 md:p-8 space-y-8">
-                {clinicLoading ? <Spinner /> : <Outlet />}
+                {loading ? <Spinner /> : <Outlet />}
             </main>
         </div>
     );

@@ -8,8 +8,8 @@ import { useAppointmentStore } from "../../../store/appointment.store";
 import Pagination from "../../Paginiation";
 
 export default function Appointments() {
-
-    const { appointments, loading, setPage, page, totalPages, upComingAppointments, todayAppointments, expiredAppointments, search, searchResults } = useAppointmentStore()
+    const { loadAppointments,
+        appointments, loading, setPage, page, totalPages, upComingAppointments, todayAppointments, expiredAppointments, search, searchResults } = useAppointmentStore()
     const [selectedType, setSelectedType] = useState("")
     const [searchTerm, setSearchTerm] = useState("")
     const debounce = useDebounce(searchTerm, 500)
@@ -25,6 +25,10 @@ export default function Appointments() {
             search(debounce)
         }
     }, [debounce, search])
+
+    useEffect(() => {
+        loadAppointments(page)
+    }, [loadAppointments, page])
 
     const filteredAppointments = useMemo(() => {
 

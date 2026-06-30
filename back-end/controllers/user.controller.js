@@ -7,6 +7,16 @@ const jwtGenerator = require("../utils/jwtGenerator")
 const getSlug = require("../utils/geSlug")
 const { MAIN_LIMIT } = require("../data/constants")
 
+const setCookies = (res, token) => {
+    const isProduction = process.env.NODE_ENV === "production";
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+};
+
 const login = async (req, res) => {
     const { email, password } = req.body
     // Check Empty Feilds
@@ -23,12 +33,7 @@ const login = async (req, res) => {
 
     // generate token
     const token = await jwtGenerator({ _id: user._id, clinicId: user.clinicId, role: user.role })
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+    setCookies(res, token)
 
     res.json({ status: statusText.SUCCESS, data: "User Logged in successfully" })
 }
@@ -74,12 +79,8 @@ const register = async (req, res) => {
             { _id: newUser._id },
             { $set: { clinicId: clinic._id } },
         )
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
+        setCookies(res, token)
+
         res.json({ status: statusText.SUCCESS })
     } catch (err) {
         res.json({ status: statusText.ERROR, data: err })
