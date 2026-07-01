@@ -1,6 +1,6 @@
 <!-- @format -->
 
-# DentApp / SmileDesk
+# SmileDesk
 
 A modern full-stack dental clinic management platform built for clinics that want to manage appointments, patients, subscriptions, and clinic profiles from a fast web dashboard.
 
