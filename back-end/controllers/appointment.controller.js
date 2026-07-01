@@ -71,8 +71,13 @@ const loadAppointments = async (req, res) => {
         if ([PENDING, ACCEPTED, DECLINED].includes(status)) {
             filters.status = status;
         }
-        const appointments = await Appointment.find(filters).sort({ date: -1 }).limit(MAIN_LIMIT).skip(skip)
-        const total = appointments && await Appointment.countDocuments(filters)
+        const [
+            appointments,
+            total
+        ] = await Promise.all([
+            Appointment.find(filters).sort({ date: -1 }).limit(MAIN_LIMIT).skip(skip),
+            Appointment.countDocuments(filters)
+        ])
         res.json({
             status: statusText.SUCCESS,
             data: appointments,
