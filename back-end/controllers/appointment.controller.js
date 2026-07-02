@@ -75,7 +75,7 @@ const loadAppointments = async (req, res) => {
             appointments,
             total
         ] = await Promise.all([
-            Appointment.find(filters).sort({ date: -1 }).limit(MAIN_LIMIT).skip(skip),
+            Appointment.find(filters).sort({ date: 1 }).limit(MAIN_LIMIT).skip(skip),
             Appointment.countDocuments(filters)
         ])
         res.json({

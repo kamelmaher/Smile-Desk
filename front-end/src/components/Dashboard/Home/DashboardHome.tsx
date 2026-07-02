@@ -4,25 +4,38 @@ import { useAuthStore } from "../../../store/auth.store"
 import { useEffect } from "react"
 import { useStatics } from "../../../store/statics.store"
 import Spinner from "../../Spinner"
+import { useClinicStore } from "../../../store/clinic.store"
+import { NavLink } from "react-router-dom"
 
 export default function DashboardHome() {
-    const { todayAppointments, loading, loadAppointments } = useAppointmentStore()
+    const { appointments, loading, loadAppointments } = useAppointmentStore()
     const { statics, loading: staticsLoading } = useStatics()
+    const { selectedClinic } = useClinicStore()
     const { user } = useAuthStore()
     useEffect(() => {
-        loadAppointments({ page: 1, dateRange: "today" })
+        loadAppointments({ page: 1, dateRange: "today", status: "accepted" })
     }, [loadAppointments])
+
+
     return <>
         {/* Header */}
-        <div>
-            <h2 className="text-3xl font-bold text-gray-900">
-                مرحبا د. {user?.userName}
-            </h2>
+        <div className="flex items-center justify-between mb-6">
+            <div>
+                <h2 className="text-3xl font-bold text-gray-900">
+                    مرحبا د. {user?.userName}
+                </h2>
 
-            <p className="text-gray-500 mt-1">
-                لوحة إدارة العيادة والمواعيد بشكل احترافي
-            </p>
+                <p className="text-gray-500 mt-1">
+                    لوحة إدارة العيادة والمواعيد بشكل احترافي
+                </p>
 
+            </div>
+            <div className="text-sm text-blue-600 font-semibold text-center">
+                <p>صفحة العيادة الخاصة بك. شاركها مع الجميع</p>
+                <NavLink to={`/clinic/${selectedClinic?.slug}`} className="underline hover:text-blue-800" aria-label="نسخ رابط العيادة">
+                    {selectedClinic?.slug}
+                </NavLink>
+            </div>
         </div>
         {
             <>
@@ -31,7 +44,7 @@ export default function DashboardHome() {
 
                     <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition">
                         <p className="text-gray-500 text-sm">حجوزات اليوم</p>
-                        <h3 className="text-3xl font-bold text-blue-600 mt-2">{todayAppointments && todayAppointments.length}</h3>
+                        <h3 className="text-3xl font-bold text-blue-600 mt-2">{appointments && appointments.length}</h3>
                     </div>
 
                     {/* Statics */}
@@ -72,7 +85,7 @@ export default function DashboardHome() {
                 {/* Content Grid */}
                 <div className="grid lg:grid-cols-2 gap-6">
                     {/* Schedule */}
-                    <AppointmentsList title="اليوم" list={todayAppointments} loading={loading} />
+                    <AppointmentsList title="اليوم" list={appointments} loading={loading} />
                 </div>
             </>
         }
