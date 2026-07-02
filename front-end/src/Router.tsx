@@ -8,7 +8,6 @@ import LoginPage from "./routes/Login";
 import RegisterPage from "./routes/Register";
 import DashboardHome from "./components/Dashboard/Home/DashboardHome";
 import Appointments from "./components/Dashboard/Appointments/Appointments";
-import Patients from "./components/Dashboard/Patients/Patients";
 import Settings from "./components/Dashboard/Settings/Settings";
 import ManagerDashboard from "./routes/ManagerDashboard";
 import Prices from "./routes/Prices";
@@ -22,7 +21,6 @@ export const router = createBrowserRouter(
             <Route path="/dashboard" element={<Dashboard />}>
                 <Route index element={<DashboardHome />} />
                 <Route path="appointments" element={<Appointments />} />
-                <Route path="patients" element={<Patients />} />
                 <Route path="plan" element={<Plan />} />
                 <Route path="settings" element={<Settings />} />
             </Route>

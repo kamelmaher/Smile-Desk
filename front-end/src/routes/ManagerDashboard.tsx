@@ -4,7 +4,6 @@ import { useUserStore } from "../store/user.store";
 import Spinner from "../components/Spinner";
 import { plans } from "../data/constants";
 import type { Clinic } from "../types/Clinic";
-// import Pagination from "../components/Paginiation";
 
 const ManagerDashboard = () => {
     const { loading, users, getUsers } = useUserStore()
@@ -73,6 +72,7 @@ const ManagerDashboard = () => {
                                             onChange={e => handleChange(clinic!._id, e.target.value)}
                                             value={clinic?.plan}
                                         >
+                                            <option value="">اختر الخطة</option>
                                             <option value={plans.MONTHLY}>{plans.MONTHLY}</option>
                                             <option value={plans.ANNUAL}>{plans.ANNUAL}</option>
                                             <option value={plans.LIFETIME}>{plans.LIFETIME}</option>
