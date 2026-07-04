@@ -2,6 +2,7 @@
 export const dashboardPages = [
     { visible: "الصفحة الرئيسية", link: "" },
     { visible: "المواعيد", link: "appointments" },
+    { visible: "الفواتير", link: "invoices" },
     { visible: "الخطة", link: "plan" },
     { visible: "الاعدادات", link: "settings" },
 ]

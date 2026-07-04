@@ -13,6 +13,7 @@ import ManagerDashboard from "./routes/ManagerDashboard";
 import Prices from "./routes/Prices";
 import FeaturesPage from "./routes/Features";
 import Plan from "./components/Dashboard/Plan";
+import InvoicesPage from "./routes/Invoices";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -21,6 +22,7 @@ export const router = createBrowserRouter(
             <Route path="/dashboard" element={<Dashboard />}>
                 <Route index element={<DashboardHome />} />
                 <Route path="appointments" element={<Appointments />} />
+                <Route path="invoices" element={<InvoicesPage />} />
                 <Route path="plan" element={<Plan />} />
                 <Route path="settings" element={<Settings />} />
             </Route>
