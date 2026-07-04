@@ -1,4 +1,4 @@
-const Invoice = require("../models/invoice");
+const Invoice = require("../models/Invoice");
 const Clinic = require("../models/Clinic");
 const { MAIN_LIMIT } = require("../data/constants")
 
