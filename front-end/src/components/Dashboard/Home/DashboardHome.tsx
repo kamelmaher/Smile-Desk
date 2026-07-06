@@ -1,22 +1,23 @@
 import AppointmentsList from "./AppointmentsList"
-import { useAppointmentStore } from "../../../store/appointment.store"
 import { useAuthStore } from "../../../store/auth.store"
-import { useEffect } from "react"
-import { useStatics } from "../../../store/statics.store"
+import { useState } from "react"
 import Spinner from "../../Spinner"
-import { useClinicStore } from "../../../store/clinic.store"
 import { NavLink } from "react-router-dom"
+import { useLoadAppointments } from "../../../hooks/useAppointments"
+import { useLoadClinic } from "../../../hooks/useClinics"
+import { useLoadStatics } from "../../../hooks/useStatics"
 
 export default function DashboardHome() {
-    const { appointments, loading, loadAppointments } = useAppointmentStore()
-    const { statics, loading: staticsLoading } = useStatics()
-    const { selectedClinic } = useClinicStore()
+    const [filters] = useState({ dateRange: "today", status: "", page: 1 })
+    const { data, isLoading } = useLoadAppointments(filters)
+    const { data: clinic } = useLoadClinic()
+
+    const selectedClinic = clinic?.clinic || null
+    const appointments = data?.appointments || []
+
+    const { data: staticsData, isPending } = useLoadStatics(selectedClinic?._id)
+    const statics = staticsData?.statics || null
     const { user } = useAuthStore()
-    useEffect(() => {
-        loadAppointments({ page: 1, dateRange: "today", status: "accepted" })
-    }, [loadAppointments])
-
-
     return <>
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -49,7 +50,7 @@ export default function DashboardHome() {
 
                     {/* Statics */}
                     {
-                        staticsLoading ? <Spinner /> :
+                        isPending ? <Spinner /> :
                             <>
                                 <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition">
                                     <p className="text-gray-500 text-sm">مجموع الحجوزات </p>
@@ -85,7 +86,7 @@ export default function DashboardHome() {
                 {/* Content Grid */}
                 <div className="grid lg:grid-cols-2 gap-6">
                     {/* Schedule */}
-                    <AppointmentsList title="اليوم" list={appointments} loading={loading} />
+                    <AppointmentsList title="اليوم" list={appointments} loading={isLoading} />
                 </div>
             </>
         }

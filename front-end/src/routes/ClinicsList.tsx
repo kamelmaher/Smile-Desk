@@ -1,15 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router";
 import Spinner from "../components/Spinner";
-import { useClinicStore } from "../store/clinic.store";
 import Pagination from "../components/Paginiation";
+import { useLoadClinics } from "../hooks/useClinics";
 
 export default function ClinicsPage() {
-    const { clinics, loadClinics, loading, page, setPage, totalPages } = useClinicStore()
+    const [page, setPage] = useState(1)
+    const { data, isLoading } = useLoadClinics(page)
 
-    useEffect(() => {
-        loadClinics(page)
-    }, [loadClinics, page])
+    const clinics = data?.clinics || []
+    const totalPages = data?.pages || 1
+
     useEffect(() => {
         scrollTo(0, 0)
     }, [])
@@ -29,7 +30,7 @@ export default function ClinicsPage() {
 
                 {/* Clinics Grid */}
                 {
-                    loading ?
+                    isLoading ?
                         <Spinner />
                         :
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

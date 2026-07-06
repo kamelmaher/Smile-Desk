@@ -2,19 +2,20 @@ import { useEffect, useState } from "react";
 import UserDataForm from "./UserDataForm";
 import WorkingHours from "./WorkingHours";
 import { uploadImage } from "../../../services/image";
-import { useClinicStore } from "../../../store/clinic.store";
 import Spinner from "../../Spinner";
+import { useLoadClinic, useUpdateClinic } from "../../../hooks/useClinics";
 
 export default function Settings() {
-    const { selectedClinic, updateLoading, updateClinic } = useClinicStore()
+    const { data } = useLoadClinic()
+    
+    const selectedClinic = data?.clinic || null
+    const { mutateAsync, isPending } = useUpdateClinic()
     const [form, setForm] = useState(selectedClinic)
     const [image, setImage] = useState<string | null>(selectedClinic.logo || "")
     const [imageLoading, setImageLoading] = useState(false)
     const handleChangeData = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value })
     }
-
-
 
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -39,7 +40,7 @@ export default function Settings() {
     const handleSubmitForm = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!imageLoading)
-            await updateClinic(form)
+            await mutateAsync(form)
     }
 
     useEffect(() => {
@@ -151,12 +152,13 @@ export default function Settings() {
                 <button
                     type="submit"
                     className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition flex items-center justify-center"
-                    disabled={updateLoading || imageLoading}
+                    disabled={isPending || imageLoading}
                 >
-                    {updateLoading || imageLoading ? <Spinner /> : "حفظ التغييرات"}
+                    {isPending || imageLoading ? <Spinner /> : "حفظ التغييرات"}
                 </button>
 
             </form>
+
             <WorkingHours />
 
             <UserDataForm />

@@ -1,16 +1,16 @@
 import Spinner from "../../Spinner";
 import Appointment from "./Appointment";
-import { useEffect } from "react";
 import AppointmentsFilter from "./AppointmentsFilter";
-import { useAppointmentStore } from "../../../store/appointment.store";
 import Pagination from "../../Paginiation";
+import { useLoadAppointments } from "../../../hooks/useAppointments";
+import { useAppointmentStore } from "../../../store/appointment.store";
 
 export default function Appointments() {
-    const { loadAppointments, appointments, loading, setPage, page, totalPages, } = useAppointmentStore()
+    const { filters, setFilters } = useAppointmentStore()
+    const { data, isLoading, isError } = useLoadAppointments(filters)
 
-    useEffect(() => {
-        loadAppointments({ page })
-    }, [loadAppointments, page])
+    const appointments = (data && data.appointments) || []
+    const totalPages = (data && data.pages) || 0
 
     return (
         <div className="space-y-6">
@@ -22,8 +22,9 @@ export default function Appointments() {
             </div>
 
             <AppointmentsFilter />
+
             {
-                loading ? <Spinner /> :
+                isLoading ? <Spinner /> : isError ? <p className="text-red-600">فشل تحميل المواعيد</p> :
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {
@@ -38,13 +39,11 @@ export default function Appointments() {
                                     <p className="text-gray-500">لا يوجد مواعيد</p>
                                 )}
                         </div>
-
                         {
-                            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+                            <Pagination page={filters?.page || 1} totalPages={totalPages} onPageChange={(page) => setFilters({ ...filters, page })} />
                         }
                     </>
             }
-
         </div >
     );
 }

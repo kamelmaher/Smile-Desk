@@ -21,7 +21,7 @@ const getSubscribedClinics = async (req, res) => {
         }
     }).limit(MAIN_LIMIT).skip(skip)
     const total = await Clinic.countDocuments()
-    res.json({ status: statusText.SUCCESS, data: clinics, pages: Math.ceil(total / MAIN_LIMIT) })
+    res.json({ status: statusText.SUCCESS, clinics, pages: Math.ceil(total / MAIN_LIMIT) })
 }
 
 const getClinicBySlug = async (req, res) => {
@@ -31,7 +31,7 @@ const getClinicBySlug = async (req, res) => {
     const clinic = await Clinic.findOne({ slug })
     if (!clinic)
         return res.json({ status: statusText.ERROR, data: "Clinic Not Found" })
-    res.json({ status: statusText.SUCCESS, data: clinic })
+    res.json({ status: statusText.SUCCESS, clinic })
 }
 
 const updateClinic = async (req, res) => {
@@ -66,13 +66,13 @@ const getClinicDetails = async (req, res) => {
     const user = req.user;
     if (!user) return res.json({ status: statusText.ERROR, data: "UnAuthorized" })
     const clinic = await Clinic.findOne({ userId: user._id })
-    if (clinic) return res.json({ status: statusText.SUCCESS, data: clinic })
+    if (clinic) return res.json({ status: statusText.SUCCESS, clinic })
     res.json({ status: statusText.FAIL, data: "Clinic Not Found" })
 }
 
 const getAllClinics = async (req, res) => {
     const clinics = await Clinic.find();
-    return res.json({ status: statusText.SUCCESS, data: clinics })
+    return res.json({ status: statusText.SUCCESS, clinics })
 }
 
 const subscribe = async (req, res) => {
