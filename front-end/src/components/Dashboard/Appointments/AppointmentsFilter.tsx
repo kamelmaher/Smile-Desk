@@ -1,16 +1,10 @@
-import { useEffect, useState } from "react"
 import { AppointmentFilter } from "../../../data/AppointmentsFilter"
-import { useAppointmentStore } from "../../../store/appointment.store"
-const AppointmentsFilter = () => {
-    const { loadAppointments } = useAppointmentStore()
-    const [filters, setFilters] = useState({
-        dateRange: "",
-        status: ""
-    })
+import { useAppointmentStore } from "../../../store/appointment.store";
 
-    useEffect(() => {
-        loadAppointments({ dateRange: filters.dateRange, status: filters.status })
-    }, [loadAppointments, filters])
+
+
+const AppointmentsFilter = () => {
+    const { filters, setFilters } = useAppointmentStore()
     return (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
 

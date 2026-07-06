@@ -1,28 +1,41 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react"
 import { appointmentStatus } from "../../../data/constants"
-import { useAppointmentStore } from "../../../store/appointment.store"
 import Spinner from "../../Spinner"
+import { useConfirmAppointment, useDeclineAppointment } from "../../../hooks/useAppointments"
 type AppointmentOptionsProps = {
     _id: string,
     isExpired: boolean
     status: "accepted" | "declined" | "pending"
 }
 const AppointmentOptions = ({ _id, isExpired, status }: AppointmentOptionsProps) => {
-    const { confirmAppointment, declineAppointment } = useAppointmentStore()
+    const confirmMutation = useConfirmAppointment()
+    const declineMutation = useDeclineAppointment()
     const [loading, setLoading] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
+    
     const handleConfirm = async () => {
         setLoading(true)
-        await confirmAppointment(_id!)
-        setLoading(false)
-        setIsUpdating(false)
+        try {
+            await confirmMutation.mutateAsync(_id)
+        } catch (e) {
+            // handled by query error handling
+        } finally {
+            setLoading(false)
+            setIsUpdating(false)
+        }
     }
 
     const handleDecline = async () => {
         setLoading(true)
-        await declineAppointment(_id!)
-        setLoading(false)
-        setIsUpdating(false)
+        try {
+            await declineMutation.mutateAsync(_id)
+        } catch (e) {
+            // handled by query error handling
+        } finally {
+            setLoading(false)
+            setIsUpdating(false)
+        }
     }
 
     return (

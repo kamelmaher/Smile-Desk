@@ -28,7 +28,7 @@ exports.dashboardStatics = async (req, res) => {
             pendingAppointments,
             declinedAppointments
         }
-        return res.status(200).json({ data })
+        return res.status(200).json({ statics: data })
     } catch (err) {
         console.log(err)
         return res.status(400).json({ msg: "Internal Server Error" })

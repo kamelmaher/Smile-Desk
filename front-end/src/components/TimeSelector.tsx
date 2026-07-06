@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from "react";
-import { useAppointmentStore } from "../store/appointment.store";
+import { useGetBooked } from "../hooks/useAppointments";
 import type { WorkingHours } from "../types/Clinic";
 import Spinner from "./Spinner";
 import { getAvailableHours, getMinDate, isWorkingDay } from "../utils/appointments";
@@ -16,29 +16,17 @@ export default function TimeSelector({ workingHours, onSelect }: Props) {
     const [slots, setSlots] = useState<string[]>([]);
     const [selected, setSelected] = useState<string | null>(null);
     const [booked, setBooked] = useState<string[]>([])
-    const [bookedLoading, setBookedLoading] = useState(false)
-    const { getBooked } = useAppointmentStore()
-    // Booked Appointments
-    useEffect(() => {
-        if (!date) return;
+    const isoDate = date ? new Date(date).toISOString().split("T")[0] : ""
+    const { data: bookedRes, isLoading: bookedLoading } = useGetBooked(isoDate)
 
+    useEffect(() => {
+        if (!date) return
         if (!isWorkingDay(workingHours, date)) {
             setBooked([])
             return
         }
-
-        const fetchBooked = async () => {
-            setBookedLoading(true);
-
-            const isoDate = new Date(date).toISOString().split("T")[0];
-
-            const bookedData = await getBooked(isoDate);
-            setBooked(bookedData);
-            setBookedLoading(false);
-        };
-
-        fetchBooked();
-    }, [date, getBooked, workingHours]);
+        setBooked((bookedRes && bookedRes.data) || [])
+    }, [date, bookedRes, workingHours])
 
     // Generate Slots
     useEffect(() => {

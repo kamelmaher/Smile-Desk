@@ -1,17 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { appointmentSchema } from "../../data/Schemas";
-import { useAppointmentStore } from "../../store/appointment.store";
-import { useClinicStore } from "../../store/clinic.store";
 import type { Appointment } from "../../types/Appointment";
 import TimeSelector from "../TimeSelector";
 import Spinner from "../Spinner";
+import { useCreateAppointment } from "../../hooks/useAppointments";
+import { useLoadClinicBySlug } from "../../hooks/useClinics";
 
 
 export default function BookingForm() {
     const { slug } = useParams()
-    const { createAppointment, loading, err, } = useAppointmentStore()
-    const { getClinicBySlug, selectedClinic } = useClinicStore()
+    const { mutateAsync: createAppointment, isPending: loading, error: err } = useCreateAppointment()
+    const { data } = useLoadClinicBySlug(slug || "")
+    const selectedClinic = data?.clinic || null
     const [open, setOpen] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -23,14 +24,6 @@ export default function BookingForm() {
         notes: "",
     } as Appointment);
 
-    useEffect(() => {
-        const loadClinic = async () => {
-            if (!slug) return
-            await getClinicBySlug(slug)
-        }
-        loadClinic()
-    }, [getClinicBySlug, slug])
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!slug) return
@@ -38,10 +31,8 @@ export default function BookingForm() {
         const result = appointmentSchema.safeParse(formData)
         if (result.success) {
             await createAppointment({ ...formData, clinicId: selectedClinic._id })
-            if (!err) {
-                setOpen(false)
-                setFormData({} as Appointment)
-            }
+            setOpen(false)
+            setFormData({} as Appointment)
         }
     };
 
@@ -127,7 +118,7 @@ export default function BookingForm() {
                                 {
                                     err &&
                                     <p className="text-center text-red-600 bg-red-50 border border-red-200 rounded-xl py-2 mt-3 text-sm font-medium">
-                                        {err}
+                                        {err.message}
                                     </p>
                                 }
 

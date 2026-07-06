@@ -1,17 +1,19 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from "react";
 import { DEFAULT_CLINIC_WORKING_HOURS, DAYS } from "../../../data/clinic";
-import { useClinicStore } from "../../../store/clinic.store";
 import Spinner from "../../Spinner";
+import { useLoadClinic, useUpdateClinic } from "../../../hooks/useClinics";
 
 
 
 export default function WorkingHours() {
-    const { updateClinic, updateLoading, selectedClinic } = useClinicStore()
+    const { mutateAsync: updateClinic, isPending } = useUpdateClinic()
+    const { data } = useLoadClinic()
+    const selectedClinic = data?.clinic || null
     const [workingHours, setWorkingHours] = useState(DEFAULT_CLINIC_WORKING_HOURS);
 
     useEffect(() => {
-        if (selectedClinic.workingHours)
+        if (selectedClinic && selectedClinic.workingHours)
             setWorkingHours(selectedClinic.workingHours.length > 0 ? selectedClinic.workingHours : DEFAULT_CLINIC_WORKING_HOURS)
     }, [selectedClinic])
 
@@ -113,7 +115,7 @@ export default function WorkingHours() {
                 className="bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition"
             >
                 {
-                    updateLoading ? <Spinner /> :
+                    isPending ? <Spinner /> :
                         "حفظ أوقات العمل"
                 }
             </button>

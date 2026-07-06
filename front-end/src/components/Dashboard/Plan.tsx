@@ -1,10 +1,12 @@
 import dayjs from "dayjs";
-import { useClinicStore } from "../../store/clinic.store";
 import { NavLink } from "react-router-dom";
 import { plans } from "../../data/constants";
+import { useLoadClinic } from "../../hooks/useClinics";
 
 const Plan = () => {
-    const { selectedClinic } = useClinicStore()
+    const { data } = useLoadClinic()
+    const selectedClinic = data?.clinic || null
+    
     const daysLeft = dayjs(selectedClinic.validTo).diff(dayjs(), 'day');
     const isExpired = daysLeft < 0;
     const planType = selectedClinic.plan === plans.ANNUAL ? 'الخطة السنوية' :

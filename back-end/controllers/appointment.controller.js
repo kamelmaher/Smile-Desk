@@ -52,12 +52,12 @@ const createAppointment = async (req, res) => {
 
 const loadAppointments = async (req, res) => {
     const user = req.user;
-    const { date, page, status } = req.query
+    const { dateRange, page, status } = req.query
     const skip = MAIN_LIMIT * (+page - 1)
     if (!user) return res.json({ status: statusText.ERROR, data: "UnAuthorized" })
     try {
         let filters = { clinicId: user.clinicId }
-        switch (date) {
+        switch (dateRange) {
             case "today":
                 filters.date = getTodayDate()
                 break;
@@ -80,7 +80,7 @@ const loadAppointments = async (req, res) => {
         ])
         res.json({
             status: statusText.SUCCESS,
-            data: appointments,
+            appointments,
             pages: Math.ceil(total / MAIN_LIMIT)
         });
     } catch (err) {

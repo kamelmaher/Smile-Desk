@@ -1,14 +1,11 @@
-import { useEffect } from "react";
 import { Link } from "react-router";
-import { useClinicStore } from "../store/clinic.store";
 import Spinner from "./Spinner";
+import { useLoadClinics } from "../hooks/useClinics";
 
 
 export default function ClinicsSection() {
-    const { clinics, loadClinics, loading } = useClinicStore()
-    useEffect(() => {
-        loadClinics()
-    }, [loadClinics])
+    const { data, isLoading } = useLoadClinics()
+    const clinics = data?.clinics || []
     return (
         <section className="py-20 bg-gray-50" dir="rtl">
             <div className="max-w-7xl mx-auto px-6">
@@ -27,7 +24,7 @@ export default function ClinicsSection() {
 
                 {/* Cards */}
                 {
-                    loading ? <Spinner /> :
+                    isLoading ? <Spinner /> :
                         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
                             {clinics.map((clinic) => (
