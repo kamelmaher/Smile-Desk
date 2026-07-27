@@ -1,5 +1,6 @@
 const { ACCEPTED, DECLINED, PENDING } = require("../data/appointmentStatus")
 const mongoose = require("mongoose")
+
 const appointmentSchema = new mongoose.Schema({
     appointmentId: String,
     clinicId: String,

@@ -9,6 +9,7 @@ A modern full-stack dental clinic management platform built for clinics that wan
 > - Lets dentists register a clinic, manage bookings, and run a clinic dashboard.
 > - Provides a clinic discovery flow with clinic listings and slug-based clinic pages.
 > - Supports appointment booking, confirmation, decline, and patient lookup.
+> - Includes an AI chat assistant that patients can talk to directly to check availability and book an appointment, powered by Gemini function/tool calling.
 > - Protects premium features behind a subscription flow and SMS-ready middleware.
 
 ---
@@ -20,7 +21,7 @@ This repository is split into two main apps:
 - `back-end/` — Express + MongoDB API server
 - `front-end/` — React + TypeScript + Vite web client
 
-The frontend is tailored for clinic users and visitors, while the backend manages authentication, clinic data, appointment workflows, and subscription validation.
+The frontend is tailored for clinic users and visitors, while the backend manages authentication, clinic data, appointment workflows, AI assistant logic, and subscription validation.
 
 ---
 
@@ -30,10 +31,24 @@ The frontend is tailored for clinic users and visitors, while the backend manage
 - JWT-based authentication with secure cookie support
 - Clinic dashboard with appointments, patients, settings, and subscription plan management
 - Appointment lifecycle: book, confirm, decline, and check available hours
+- **AI clinic assistant** — a chat-based assistant (built with the Gemini SDK's function/tool calling) that lets patients book appointments and (soon) look up appointment details in plain language — see [AI Clinic Assistant](#-ai-clinic-assistant) below.
 - Subscription validation middleware to gate premium clinic operations
 - SMS integration scaffolded through middleware and reusable SMS service layer
 - Paginated clinic listing, featured clinics, and clinic detail lookup by slug
 - Form validation with Zod and request rate limiting for sensitive routes
+
+---
+
+## 🤖 AI Clinic Assistant
+
+SmileDesk includes a chat-based AI assistant built with the Gemini SDK's function/tool calling. Instead of the usual forms and dropdowns, patients (and staff) can just type what they want, and the model calls the right backend function to handle it.
+
+**Capabilities:**
+
+- ✅ **Book an appointment** — patient describes when they want to come in, the assistant checks availability and creates the booking.
+- 🔜 **Get appointment details** — patient (or staff) will be able to ask about an existing appointment (date, time, status) and have the assistant look it up and reply — in progress.
+
+More tools will be added to the assistant over time as new booking-related actions come up.
 
 ---
 
@@ -44,6 +59,7 @@ The frontend is tailored for clinic users and visitors, while the backend manage
 - Node.js + Express 5
 - MongoDB + Mongoose
 - JSON Web Tokens (JWT)
+- Google Gemini API (function/tool calling for the AI clinic assistant)
 - Zod validation
 - dotenv configuration
 - express-rate-limit
@@ -67,20 +83,20 @@ The frontend is tailored for clinic users and visitors, while the backend manage
 ### Back-end structure
 
 - `index.js` — app entry point, CORS setup, route registration
-- `controllers/` — request handlers for users, clinics, appointments, SMS, and stats
+- `controllers/` — request handlers for users, clinics, appointments, AI chat, SMS, and stats
 - `routes/` — route definitions for API endpoints
 - `models/` — Mongoose schemas for `User`, `Clinic`, `Appointment`, and `OTP`
 - `middleware/` — auth, subscription guard, SMS subscription check, validation, and rate limiting
 - `validations/` — Zod schemas for auth and appointment payloads
-- `services/` — SMS sending helpers and message scaffolding
+- `services/` — SMS sending helpers, message scaffolding, and the Gemini-powered AI assistant service (tool/function definitions for availability checks, booking, and lookups)
 - `data/` — constants, plans, roles, status text, and clinic defaults
 
 ### Front-end structure
 
 - `src/Router.tsx` — page routes and nested dashboard routes
 - `src/routes/` — top-level pages like `Home`, `Login`, `Register`, `Clinic`, `Dashboard`, `Pricing`, and `Features`
-- `src/components/` — reusable UI pieces, dashboard views, appointment cards, and mobile-friendly sections
-- `src/services/` — API clients for auth, clinic, appointment, SMS, and statics
+- `src/components/` — reusable UI pieces, dashboard views, appointment cards, the chat assistant widget, and mobile-friendly sections
+- `src/services/` — API clients for auth, clinic, appointment, AI chat, SMS, and statics
 - `src/store/` — state stores for auth, clinic, appointment, and UI data
 - `src/config/api.ts` — Axios base client with cookie support
 - `src/types/` — typed request/response models for strong TypeScript safety
@@ -125,6 +141,7 @@ Create a `.env` file inside `back-end/` with at least:
 DB_URL=<your-mongo-connection-string>
 WEBSITE_URL=http://localhost:5173
 NODE_ENV=development
+GEMINI_API_KEY=<your-gemini-api-key>
 ```
 
 ### Front-end
@@ -179,6 +196,7 @@ VITE_BACKEND_URL=http://localhost:3000
 ## 💡 Notes
 
 - The backend uses cookie-based auth and `withCredentials: true` in Axios, so the frontend and backend must share a trusted origin.
+- The AI clinic assistant uses the Gemini SDK's function/tool calling: the model is given a set of callable functions (check availability, create booking, look up patient/appointment) and decides when to call each one based on the conversation. All validation and business rules still live in the backend functions themselves.
 - SMS support is implemented as a service layer and middleware gate, ready to connect to a real provider.
 - The front-end UI is designed for Arabic users, with right-to-left content and clinic branding.
 
@@ -186,19 +204,9 @@ VITE_BACKEND_URL=http://localhost:3000
 
 ## ⭐ Creative Summary
 
-DentApp is a polished dental care management experience for clinics that want to run their business digitally. It combines a modern React dashboard with an Express/Mongo backend, focused on clinic growth, appointment efficiency, and subscription-aware operations.
+SmileDesk is a polished dental care management experience for clinics that want to run their business digitally. It combines a modern React dashboard with an Express/Mongo backend and an AI-powered chat assistant, focused on clinic growth, effortless appointment booking, and subscription-aware operations.
 
 Use this project as a base to launch a clinic management SaaS, polish the patient booking flow, or turn it into a multilingual health tech product.
-
----
-
-## 🚧 Future Enhancements
-
-- Add `npm test` and end-to-end test coverage
-- Connect real SMS gateway credentials
-- Add clinic analytics and revenue reporting
-- Add admin-level user roles and access controls
-- Improve mobile responsiveness for doctors on the go
 
 ---
 
