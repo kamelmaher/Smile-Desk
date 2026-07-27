@@ -4,6 +4,7 @@ import Spinner from "../components/Spinner";
 import { features } from "../data/Features";
 import { formatWorkingHours } from "../utils/clinics";
 import BookingForm from "../components/Dashboard/BookForm";
+import ChatAssistant from "../components/ChatAssistant";
 import { useLoadClinicBySlug } from "../hooks/useClinics";
 
 export default function ClinicPage() {
@@ -22,6 +23,9 @@ export default function ClinicPage() {
                 selectedClinic ?
                     (
                         <>
+                            {/* Chat Assistant */}
+                            <ChatAssistant clinicId={selectedClinic._id} clinicName={selectedClinic.clinicName} />
+
                             {/* Hero Section */}
                             <div className="bg-white pt-10 pb-20 px-6">
                                 <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">

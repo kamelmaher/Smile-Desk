@@ -40,6 +40,7 @@ const appointmentRoutes = require("./routes/appointment.route")
 const smsRoutes = require("./routes/sms.route")
 const staticsRoutes = require("./routes/statics.route")
 const invoiceRoutes = require("./routes/invoice.route")
+const assistantRoutes = require("./routes/assistant.route")
 
 // Routes
 app.use("/user", userRoutes)
@@ -48,3 +49,4 @@ app.use("/appointment", appointmentRoutes)
 app.use("/sms", smsRoutes)
 app.use("/statics", staticsRoutes)
 app.use("/invoice", invoiceRoutes)
+app.use("/assistant", assistantRoutes)
