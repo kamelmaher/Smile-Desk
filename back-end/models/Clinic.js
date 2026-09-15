@@ -1,13 +1,14 @@
+const mongoose = require('mongoose');
 const plans = require("../data/plans")
-const mongoose = require("mongoose")
 const { DEFAULT_CLINIC_WORKING_HOURS } = require("../data/clinic")
-const dayjs = require("dayjs")
 
 const clinicSchema = new mongoose.Schema({
-    clinicId: String,
-    userId: String,
     clinicName: {
-        type: String,
+        type: String, required: true
+    },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user',
         required: true
     },
     slug: {
@@ -19,21 +20,29 @@ const clinicSchema = new mongoose.Schema({
     description: String,
     email: String,
     address: String,
+    subscription: {
+        plan: {
+            type: String,
+            enum: Object.values(plans),
+            default: plans.TRIAL
+        },
 
-    plan: {
-        type: String,
-        enum: [plans.MONTHLY, plans.ANNUAL, plans.FREE],
-        default: plans.FREE
-    },
-    createdAt: {
-        type: Date,
-        required: true,
-        default: Date.now
-    },
-    validTo: {
-        type: Date,
-        required: true,
-        default: () => dayjs().add(7, 'day').toDate()
+        status: {
+            type: String,
+            enum: ['active', 'expired', 'canceled'],
+            default: 'active'
+        },
+
+        startedAt: {
+            type: Date,
+            default: Date.now
+        },
+        trialEndsAt: {
+            type: Date
+        },
+        currentPeriodEnd: {
+            type: Date
+        },
     },
     workingHours: {
         type: [
@@ -52,7 +61,16 @@ const clinicSchema = new mongoose.Schema({
         ],
         default: DEFAULT_CLINIC_WORKING_HOURS
     }
-})
+}, { timestamps: true });
 
-const Clinic = mongoose.model("Clinic", clinicSchema)
+clinicSchema.methods.isSubscriptionActive = function () {
+    const sub = this.subscription;
+    const now = new Date();
+
+    if (sub.plan === plans.LIFETIME) return sub.status !== 'canceled';
+    if (sub.plan === plans.TRIAL) return !!sub.trialEndsAt && sub.trialEndsAt > now;
+    return sub.status !== 'canceled' && !!sub.currentPeriodEnd && sub.currentPeriodEnd > now;
+};
+
+const Clinic = mongoose.model("clinic", clinicSchema)
 module.exports = Clinic

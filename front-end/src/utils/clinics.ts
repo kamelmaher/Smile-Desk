@@ -13,7 +13,8 @@ export function formatWorkingHours(hours: WorkingHours[]) {
 
     if (!openDays.length) return "مغلق";
 
-    const formatTime = (t: string) => {
+    const formatTime = (t?: string) => {
+        if (!t) return "غير محدد";
         return dayjs(`2026-01-01T${t}`).format('h:mm A')
             .replace('AM', 'صباحاً')
             .replace('PM', 'مساءً');

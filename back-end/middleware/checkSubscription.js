@@ -1,33 +1,23 @@
-const Clinic = require("../models/Clinic")
-const statusText = require("../data/statusText")
-const dayjs = require("dayjs")
+const Clinic = require('../models/Clinic');
 
-module.exports = async (req, res, next) => {
-    const user = req.user
-    if (!user) return res.json({ status: statusText.ERROR, data: "المستخدم غير موجود" })
+module.exports = async function checkSubscription(req, res, next) {
+    try {
+        const clinic = await Clinic.findById(req.user.clinicId);
+        if (!clinic) return res.status(404).json({ data: 'Clinic not found' });
 
+        if (!clinic.isSubscriptionActive()) {
+            if (clinic.subscription.status !== 'expired') {
+                clinic.subscription.status = 'expired';
+                await clinic.save();
+            }
+            return res.status(402).json({
+                data: 'Subscription expired. Please upgrade to continue.',
+            });
+        }
 
-    const clinic = await Clinic.findById(user.clinicId)
-    if (!clinic)
-        return res.json({
-            status: statusText.ERROR,
-            data: "العيادة غير موجودة"
-        });
-
-    if (!clinic.validTo) {
-        return res.status(403).json({
-            status: statusText.ERROR,
-            data: "لا يوجد اشتراك نشط لهذه العيادة"
-        });
+        req.clinic = clinic;
+        next();
+    } catch (err) {
+        next(err);
     }
-
-    const isExpired = dayjs().isAfter(dayjs(clinic.validTo));
-    if (isExpired) {
-        return res.status(402).json({
-            status: statusText.ERROR,
-            data: "انتهت صلاحية اشتراك العيادة، يرجى التجديد للمتابعة"
-        });
-    }
-    req.clinic = clinic
-    next()
-}
+};

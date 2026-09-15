@@ -23,7 +23,7 @@ export const getAvailableHours = (workingHours: WorkingHours[], date: string) =>
     const day = (dayjs(date).day() + 1) % 7;
 
     const workingDay = workingHours.find((d) => d.day === day);
-    if (!workingDay || !workingDay.isOpen) {
+    if (!workingDay || !workingDay.isOpen || !workingDay.start || !workingDay.end) {
         return [];
     }
 

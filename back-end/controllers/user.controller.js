@@ -3,9 +3,10 @@ const Clinic = require("../models/Clinic")
 const statusText = require("../data/statusText")
 const bcrypt = require("bcryptjs")
 const roles = require("../data/roles")
+const plans = require("../data/plans")
 const jwtGenerator = require("../utils/jwtGenerator")
 const getSlug = require("../utils/geSlug")
-const { MAIN_LIMIT } = require("../data/constants")
+const { MAIN_LIMIT, TRIAL_DAYS } = require("../data/constants")
 
 const setCookies = (res, token) => {
     const isProduction = process.env.NODE_ENV === "production";
@@ -19,28 +20,32 @@ const setCookies = (res, token) => {
 
 const login = async (req, res) => {
     const { email, password } = req.body
-    // Check Empty Feilds
-    if (!email || !password) return res.json({ status: statusText.FAIL, data: "Missing Fields" })
+    try {
+        // Check Empty Feilds
+        if (!email || !password) return res.json({ status: statusText.FAIL, data: "Missing Fields" })
 
-    // Check if user exists
-    const user = await User.findOne({ email })
-    if (!user) return res.json({ status: statusText.FAIL, data: "check Email or Password" })
+        // Check if user exists
+        const user = await User.findOne({ email })
+        if (!user) return res.json({ status: statusText.FAIL, data: "check Email or Password" })
 
-    // compare Passwords
-    const hashedPassword = user.password
-    const isMatched = await bcrypt.compare(password, hashedPassword)
-    if (!isMatched) return res.json({ status: statusText.FAIL, data: "check Email or Password" })
+        // compare Passwords
+        const hashedPassword = user.password
+        const isMatched = await bcrypt.compare(password, hashedPassword)
+        if (!isMatched) return res.json({ status: statusText.FAIL, data: "check Email or Password" })
 
-    // generate token
-    const token = await jwtGenerator({ _id: user._id, clinicId: user.clinicId, role: user.role })
-    setCookies(res, token)
+        // generate token
+        const token = await jwtGenerator({ _id: user._id, clinicId: user.clinicId, role: user.role })
+        setCookies(res, token)
 
-    res.json({ status: statusText.SUCCESS, data: "User Logged in successfully" })
+        res.json({ status: statusText.SUCCESS, data: "User Logged in successfully" })
+    } catch (err) {
+        res.json({ status: statusText.ERROR, data: err.message || "Something went wrong" })
+    }
 }
 
 const register = async (req, res) => {
+    const { email, password, userName, clinicName, phoneNumber, description } = req.body
     try {
-        const { email, password, userName, clinicName, phoneNumber, description } = req.body
         // check if email not in use
         const emailFound = await User.findOne({ email })
         if (emailFound)
@@ -50,6 +55,11 @@ const register = async (req, res) => {
         const clinicNameFound = await Clinic.findOne({ clinicName })
         if (clinicNameFound)
             return res.json({ status: statusText.FAIL, data: "cant use this clinic name" })
+
+        // Check Phone Number
+        const phoneNumberFound = await User.findOne({ phoneNumber })
+        if (phoneNumberFound)
+            return res.json({ status: statusText.FAIL, data: "رقم الهاتف مستخدم من قبل" })
 
         // password hash 
         const hashedPass = await bcrypt.hash(password, 10)
@@ -62,23 +72,29 @@ const register = async (req, res) => {
             phoneNumber,
             role: roles.ADMIN,
         })
+
         // create clinic
         const slug = getSlug(clinicName)
         const clinic = await Clinic.create({
             userId: newUser._id,
             clinicName,
             slug,
-            description: description
+            phoneNumber,
+            description,
+            subscription: {
+                plan: plans.TRIAL,
+                status: 'active',
+                startedAt: new Date(),
+                trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
+            },
         })
 
         // generate token
         const token = await jwtGenerator({ _id: newUser.id, clinicId: clinic._id, role: newUser.role })
 
         //update user
-        await User.updateOne(
-            { _id: newUser._id },
-            { $set: { clinicId: clinic._id } },
-        )
+        newUser.clinicId = clinic._id
+        await newUser.save()
         setCookies(res, token)
 
         res.json({ status: statusText.SUCCESS })

@@ -14,9 +14,9 @@ export const appointmentStatus = {
 }
 
 export const plans = {
+    TRIAL: "trial",
     MONTHLY: "monthly",
     ANNUAL: "annual",
-    FREE: "free",
     LIFETIME: "lifetime"
 }
 

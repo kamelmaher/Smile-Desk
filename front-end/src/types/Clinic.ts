@@ -1,23 +1,30 @@
-import { plans } from "../data/constants"
-
 export type Clinic = {
-    _id: string,
-    userId: string,
-    clinicName: string,
-    description: string,
-    phoneNumber?: string,
-    email?: string,
-    address?: string
-    slug: string
-    logo?: string
-    createdAt: string
-    validTo: string
-    workingHours?: WorkingHours[]
-    plan: typeof plans[keyof typeof plans]
+    _id: string;
+    userId: string;
+    clinicName: string;
+    slug: string;
+    phoneNumber?: string;
+    logo?: string;
+    description?: string;
+    email?: string;
+    address?: string;
+    workingHours: WorkingHours[];
+    subscription: ClinicSubscription;
+    createdAt: string;
+    updatedAt: string;
 }
+
+export type ClinicSubscription = {
+    plan: "trial" | "monthly" | "annual" | "lifetime";
+    status: "active" | "expired" | "canceled";
+    startedAt: string;
+    trialEndsAt?: string;
+    currentPeriodEnd?: string;
+}
+
 export type WorkingHours = {
-    day: number,
-    isOpen: boolean,
-    start: string,
-    end: string
+    day: number;
+    isOpen: boolean;
+    start?: string;
+    end?: string;
 }

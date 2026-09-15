@@ -9,5 +9,4 @@ export const appointment = {
     confirm: (id: string) => patch(`${baseUrl}/confirm/${id}`),
     decline: (id: string) => patch(`${baseUrl}/decline/${id}`),
     getBooked: (date: string) => get(`${baseUrl}/booked?date=${date}`),
-    checkPhoneNumber: (phoneNumber: string, clinicId: string) => post(`${baseUrl}/check-number?number=${phoneNumber}`, { clinicId })
 };

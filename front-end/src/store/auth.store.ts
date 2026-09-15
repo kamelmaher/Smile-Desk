@@ -59,10 +59,13 @@ export const useAuthStore = create<AuthState>((set) => ({
                 showSuccess("تم التسجيل بنجاح")
                 return { success: true }
             } else {
+                const message = typeof response.data.data === "string"
+                    ? response.data.data
+                    : "حدث خطأ أثناء إنشاء الحساب"
                 set({
-                    err: response.data.data
+                    err: message
                 })
-                showError(response.data.data)
+                showError(message)
                 return { success: false }
             }
         } catch (err) {

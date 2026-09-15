@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { clinic } from "../services/clinic"
-import type { Clinic } from "../types/Clinic"
-import { showSuccess } from "../utils/toast"
+import type { Clinic, ClinicSubscription } from "../types/Clinic"
+import { showError, showSuccess } from "../utils/toast"
 
 const ClinicKey = ["clinic"]
 
@@ -40,11 +40,21 @@ export const useUpdateClinic = () => {
 export const useSubscribe = () => {
     const qc = useQueryClient()
     return useMutation({
-        mutationFn: ({ clinicId, plan }: { clinicId: string, plan: string }) => clinic.subscribe(clinicId, plan).then(res => res.data),
+        mutationFn: async ({ clinicId, plan }: { clinicId: string, plan: ClinicSubscription["plan"] }) => {
+            const response = await clinic.subscribe(clinicId, plan)
+            if (response.data.status !== "success") {
+                throw new Error(response.data.data || "تعذر تحديث الاشتراك")
+            }
+            return response.data
+        },
         onSuccess: () => {
+            showSuccess("تم تحديث الاشتراك بنجاح")
             qc.invalidateQueries({
                 queryKey: ClinicKey
             })
+        },
+        onError: (error) => {
+            showError(error.message)
         }
     })
 }

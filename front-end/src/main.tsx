@@ -4,11 +4,12 @@ import { router } from './Router.tsx'
 import "./app.css"
 import dayjs from 'dayjs';
 import 'dayjs/locale/ar';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from './config/queryClient.ts';
 
 dayjs.locale('ar');
 
-const queryClient = new QueryClient()
+
 
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={queryClient}>

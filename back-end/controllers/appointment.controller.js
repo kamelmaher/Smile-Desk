@@ -1,6 +1,6 @@
 const Appointment = require("../models/Appointment")
 const statusText = require("../data/statusText")
-const { MAIN_LIMIT } = require("../data/constants")
+const { MAIN_LIMIT, MAX_APPOINTMENTS_FOR_PATIENT } = require("../data/constants")
 const { ACCEPTED, DECLINED, PENDING } = require("../data/appointmentStatus")
 const { removeCancelled, checkIfTwoPendingAppointments, getTodayDate, getUpcomingDate, getExpiredDate } = require("../utils/appointments")
 const dayjs = require('dayjs');
@@ -16,6 +16,19 @@ const createAppointment = async (req, res) => {
 
         if (dayjs(data.date).isBefore(dayjs())) {
             return res.status(400).json({ status: statusText.ERROR, data: "لا يمكن حجز موعد في تاريخ سابق" });
+        }
+
+        const pendingAppointmentsCount = await Appointment.countDocuments({
+            clinicId: data.clinicId,
+            patientPhoneNumber: data.patientPhoneNumber,
+            status: PENDING,
+        });
+
+        if (pendingAppointmentsCount >= MAX_APPOINTMENTS_FOR_PATIENT) {
+            return res.status(400).json({
+                status: statusText.ERROR,
+                data: "لا يمكن حجز أكثر من موعد قيد الانتظار لهذا الرقم",
+            });
         }
 
         const existingAppointment = await Appointment.findOne({
@@ -160,25 +173,7 @@ const getBooked = async (req, res) => {
     }
 };
 
-const checkPhoneNumber = async (req, res) => {
-    const phoneNumber = req.query.number;
-    const clinicId = req.body.clinicId
-    if (!clinicId) return res.json({ status: statusText.ERROR, data: "العيادة غير موجودة" })
-    if (!phoneNumber) return res.json({ status: statusText.ERROR, data: "يجب ادخال رقم الهاتف" })
-    try {
-        const appointmentsWithPhoneNumber = await Appointment.find({
-            clinicId: clinicId,
-            patientPhoneNumber: phoneNumber
-        })
 
-        if (checkIfTwoPendingAppointments(appointmentsWithPhoneNumber))
-            return res.json({ status: statusText.ERROR, data: "لا يمكن حجز اكثر من موعدين" })
-        return res.json({ status: statusText.SUCCESS })
-    } catch (err) {
-        return res.json({ status: statusText.ERROR })
-    }
-
-}
 
 module.exports = {
     createAppointment,
@@ -186,7 +181,6 @@ module.exports = {
     confirmAppointment,
     declineAppointment,
     getBooked,
-    checkPhoneNumber
 }
 
 

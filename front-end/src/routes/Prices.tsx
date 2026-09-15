@@ -1,5 +1,7 @@
 import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { plansData } from "../data/constants";
+import { showWarning } from "../utils/toast";
 
 const handleSubscribe = (planName: string, price: string) => {
     const message = `مرحباً، أرغب بالاشتراك في نظام SmileDesk
@@ -23,9 +25,20 @@ const handleSubscribe = (planName: string, price: string) => {
     document.body.removeChild(link);
 };
 export default function Pricing() {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+
     useEffect(() => {
         scrollTo(0, 0)
     }, [])
+
+    useEffect(() => {
+        if (searchParams.get("subscription") === "expired") {
+            showWarning("انتهى الاشتراك، يرجى اختيار خطة للتجديد");
+            navigate("/pricing", { replace: true });
+        }
+    }, [navigate, searchParams])
+
     return (
         <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
             <div className="container mx-auto px-6 text-center">

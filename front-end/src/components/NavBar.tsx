@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink } from 'react-router'
+import { NavLink, useNavigate } from 'react-router'
 import Spinner from './Spinner'
 import { useAuthStore } from '../store/auth.store'
 import { ChevronDown, X, Menu } from 'lucide-react'
 
 const NavBar = () => {
     const { isAuthenticated, user, fetchUser, loading, logout } = useAuthStore()
+    const navigate = useNavigate()
     useEffect(() => {
         if (!isAuthenticated)
             fetchUser()
@@ -79,8 +80,9 @@ const NavBar = () => {
                                 </NavLink>
 
                                 <button
-                                    onClick={() => {
-                                        logout()
+                                    onClick={async () => {
+                                        await logout()
+                                        navigate("/login")
                                         setDropdownOpen(false)
                                     }}
                                     className="w-full text-right px-4 py-2 hover:bg-red-50 text-red-600"
@@ -147,8 +149,9 @@ const NavBar = () => {
                             </NavLink>
 
                             <button
-                                onClick={() => {
-                                    logout();
+                                onClick={async () => {
+                                    await logout();
+                                    navigate("/login")
                                     setIsOpen(false);
                                 }}
                                 className="bg-red-500 text-white px-4 py-2 rounded-lg"

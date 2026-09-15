@@ -1,7 +1,10 @@
 const { z } = require("zod")
 
 const appointmentSchema = z.object({
-    date: z.string().min(1, "Date is required"),
+    date: z.string().min(1, "Date is required").refine((value) => {
+        const parsedDate = new Date(value)
+        return !Number.isNaN(parsedDate.getTime())
+    }, "Invalid date"),
 
     notes: z.string().optional(),
 

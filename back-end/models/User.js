@@ -1,20 +1,25 @@
 const roles = require("../data/roles")
-const plans = require("../data/plans")
 const mongoose = require("mongoose")
 
 const userSchema = new mongoose.Schema({
-    clinicId: String,
-    userId: String,
+    clinicId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "clinic",
+        default: null
+    },
     userName: String,
     email: String,
     password: String,
-    phoneNumber: String,
+    phoneNumber: {
+        type: String,
+        unique: true,
+        required: true,
+    },
     role: {
         type: String,
         enum: [roles.ADMIN, roles.MANAGER]
     },
-   
 })
 
-const User = mongoose.model("User", userSchema)
+const User = mongoose.model("user", userSchema)
 module.exports = User

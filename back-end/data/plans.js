@@ -1,10 +1,10 @@
-const FREE = "free"
+const TRIAL = "trial"
 const MONTHLY = "monthly"
 const ANNUAL = "annual"
 const LIFETIME = "lifetime"
 
 module.exports = {
-    FREE,
+    TRIAL,
     MONTHLY,
     ANNUAL,
     LIFETIME

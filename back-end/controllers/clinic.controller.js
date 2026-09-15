@@ -9,14 +9,14 @@ const getSubscribedClinics = async (req, res) => {
     const page = req.query.page || 1
     const skip = (page - 1) * MAIN_LIMIT
     const clinics = await Clinic.find({
-        plan: {
+        "subscription.plan": {
             $in: [
                 plans.ANNUAL,
                 plans.MONTHLY,
                 plans.LIFETIME
             ]
         },
-        validTo: {
+        "subscription.currentPeriodEnd": {
             $gt: dayjs()
         }
     }).limit(MAIN_LIMIT).skip(skip)
@@ -76,50 +76,46 @@ const getAllClinics = async (req, res) => {
 }
 
 const subscribe = async (req, res) => {
-    const { clinicId } = req.body;
-    if (!clinicId) return res.json({ status: statusText.ERROR, data: "User Not Found" })
-    const { plan } = req.body
-    if (!plan) return res.json({ status: statusText.FAIL, data: "not a Valid Plan" })
-
-    let newPlan;
-    switch (plan) {
-        case plans.MONTHLY: newPlan = plans.MONTHLY
-            break;
-        case plans.ANNUAL: newPlan = plans.ANNUAL
-            break
-        case plans.LIFETIME: newPlan = plans.LIFETIME
-            break
-        default: return res.json({ status: statusText.FAIL, data: "not a Valid Plan" })
-    }
-
     try {
-        const clinic = await Clinic.findOne({ _id: clinicId })
-        if (!clinic) return res.json({ status: statusText.ERROR, data: "العيادة غير موجودة" })
-
-        const currentValidTo = dayjs(clinic.validTo);
-        const startDate = currentValidTo.isAfter(dayjs()) ? currentValidTo : dayjs();
-
-        let newValidTo;
-        if (newPlan === plans.LIFETIME) {
-            newValidTo = dayjs().add(100, 'year').toDate();
-        } else {
-            const daysToAdd = newPlan === plans.MONTHLY ? 30 : 365;
-            newValidTo = startDate.add(daysToAdd, 'day').toDate();
+        const { clinicId, plan } = req.body;
+        if (!clinicId) return res.json({ status: statusText.ERROR, data: "Clinic id is required" })
+        if (!Object.values(plans).includes(plan) || plan === plans.TRIAL) {
+            return res.json({ status: statusText.FAIL, data: "not a Valid Plan" })
         }
 
+        const clinic = await Clinic.findById(clinicId)
+        if (!clinic) return res.json({ status: statusText.ERROR, data: "العيادة غير موجودة" })
+
+        const now = dayjs()
+        const currentPeriodEnd = clinic.subscription?.currentPeriodEnd
+            ? dayjs(clinic.subscription.currentPeriodEnd)
+            : now
+        const startDate = currentPeriodEnd.isAfter(now) ? currentPeriodEnd : now
+        const update = {
+            "subscription.plan": plan,
+            "subscription.status": "active",
+            "subscription.startedAt": now.toDate(),
+        }
+
+        if (plan === plans.LIFETIME) {
+            update["subscription.currentPeriodEnd"] = null
+        } else {
+            const daysToAdd = plan === plans.MONTHLY ? 30 : 365
+            update["subscription.currentPeriodEnd"] = startDate.add(daysToAdd, "day").toDate()
+        }
 
         const updated = await Clinic.findByIdAndUpdate(
             clinicId,
             {
-                plan: newPlan,
-                validTo: newValidTo
+                $set: update,
+                $unset: { "subscription.trialEndsAt": "" }
             },
-            { returnDocument: "after" }
-        );
+            { new: true, runValidators: true }
+        )
 
         res.json({ status: statusText.SUCCESS, data: updated })
     } catch (err) {
-        res.json({ status: statusText.ERROR, data: "Internal Server Error" })
+        res.status(500).json({ status: statusText.ERROR, data: err.message || "Internal Server Error" })
     }
 }
 
