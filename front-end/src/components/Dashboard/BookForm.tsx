@@ -14,6 +14,7 @@ export default function BookingForm() {
     const { data } = useLoadClinicBySlug(slug || "")
     const selectedClinic = data?.clinic || null
     const [open, setOpen] = useState(false);
+    const [validationError, setValidationError] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         patientName: "",
@@ -27,12 +28,19 @@ export default function BookingForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!slug) return
-        if (!selectedClinic._id) return
+        if (!selectedClinic?._id) return
         const result = appointmentSchema.safeParse(formData)
         if (result.success) {
-            await createAppointment({ ...formData, clinicId: selectedClinic._id })
-            setOpen(false)
-            setFormData({} as Appointment)
+            setValidationError(null)
+            try {
+                await createAppointment({ ...formData, clinicId: selectedClinic._id })
+                setOpen(false)
+                setFormData({} as Appointment)
+            } catch {
+                // The mutation error is displayed in the form.
+            }
+        } else {
+            setValidationError(result.error.issues[0]?.message || "يرجى التحقق من البيانات")
         }
     };
 
@@ -105,7 +113,7 @@ export default function BookingForm() {
                                 />
 
                                 {/* Date & Time Selector */}
-                                <TimeSelector onSelect={handleSelect} workingHours={selectedClinic.workingHours!} />
+                                {selectedClinic && <TimeSelector onSelect={handleSelect} clinicId={selectedClinic._id} workingHours={selectedClinic.workingHours} />}
 
 
                                 <textarea
@@ -116,9 +124,9 @@ export default function BookingForm() {
                                     rows={3}
                                     className="w-full rounded-xl p-3 border border-gray-300 bg-white text-gray-700 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
                                 {
-                                    err &&
+                                    (validationError || err) &&
                                     <p className="text-center text-red-600 bg-red-50 border border-red-200 rounded-xl py-2 mt-3 text-sm font-medium">
-                                        {err.message}
+                                        {validationError || err?.message || "تعذر إنشاء الموعد"}
                                     </p>
                                 }
 

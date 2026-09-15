@@ -13,4 +13,11 @@ const loginSchema = z.object({
     password: z.string({ error: "كلمة المرور مطلوبة" }).min(1, "كلمة المرور مطلوبة"),
 })
 
-module.exports = { registerSchema, loginSchema }
+const updateUserSchema = z.object({
+    userName: z.string().trim().min(2).optional(),
+    email: z.string().trim().email("يرجى إدخال بريد إلكتروني صحيح").optional(),
+    phoneNumber: z.string().trim().min(9, "رقم الهاتف يجب أن يحتوي على 9 أرقام على الأقل").optional(),
+    password: z.string().min(8, "كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل").optional(),
+}).refine((data) => Object.keys(data).length > 0, "يجب إرسال حقل واحد على الأقل للتحديث")
+
+module.exports = { registerSchema, loginSchema, updateUserSchema }

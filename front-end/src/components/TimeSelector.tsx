@@ -8,21 +8,21 @@ import dayjs from "dayjs";
 
 type Props = {
     workingHours: WorkingHours[];
+    clinicId: string;
     onSelect: (dateTime: string) => void;
 };
 
-export default function TimeSelector({ workingHours, onSelect }: Props) {
+export default function TimeSelector({ workingHours, clinicId, onSelect }: Props) {
     const [date, setDate] = useState("");
     const [slots, setSlots] = useState<string[]>([]);
     const [selected, setSelected] = useState<string | null>(null);
     const [booked, setBooked] = useState<string[]>([])
-    const isoDate = date ? new Date(date).toISOString().split("T")[0] : ""
-    const { data: bookedRes, isLoading: bookedLoading } = useGetBooked(isoDate)
+    const { data: bookedRes, isLoading: bookedLoading, isError: bookedError } = useGetBooked(date, clinicId)
 
     useEffect(() => {
         if (!date) return
+        setBooked([])
         if (!isWorkingDay(workingHours, date)) {
-            setBooked([])
             return
         }
         setBooked((bookedRes && bookedRes.data) || [])
@@ -65,6 +65,8 @@ export default function TimeSelector({ workingHours, onSelect }: Props) {
             {/* ⏰ TIME */}
             {bookedLoading ? (
                 <Spinner />
+            ) : bookedError ? (
+                <p className="text-red-500">تعذر تحميل الأوقات المحجوزة</p>
             ) : (
                 slots.length > 0 && (
                     <div className="space-y-2">

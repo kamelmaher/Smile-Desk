@@ -30,7 +30,7 @@ const LoginPage: React.FC = () => {
                 </div>
 
                 {/* Login Form */}
-                <form className="space-y-6">
+                <form className="space-y-6" onSubmit={handleSubmit}>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
                             البريد الإلكتروني
@@ -69,7 +69,6 @@ const LoginPage: React.FC = () => {
                     <button
                         type="submit"
                         className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-blue-700 shadow-lg shadow-blue-200 transition duration-300"
-                        onClick={handleSubmit}
                         disabled={authLoading}
                     >
                         {

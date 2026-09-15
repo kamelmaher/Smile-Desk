@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { create } from "zustand";
 import { auth } from "../services/auth";
 import type { registerType } from "../types/authTypes";
@@ -11,6 +10,7 @@ type AuthState = {
     user: User | null;
     loading: boolean;
     authLoading: boolean
+    authChecked: boolean
     isAuthenticated: boolean;
     err: string | null,
     register: (data: registerType) => Promise<{ success: boolean }>,
@@ -24,6 +24,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     user: null,
     loading: false,
     authLoading: false,
+    authChecked: false,
     isAuthenticated: false,
     err: null,
 
@@ -32,21 +33,24 @@ export const useAuthStore = create<AuthState>((set) => ({
 
         try {
             const res = await auth.me();
-            if (res.data.status == "success")
+            if (res.data.status === "success") {
                 set({
                     user: res.data.data,
                     isAuthenticated: true,
-                    loading: false,
+                    err: null,
                 });
+            } else {
+                set({ user: null, isAuthenticated: false });
+            }
         } catch {
             set({
                 user: null,
                 isAuthenticated: false,
-                err: "Something went wrong"
+                err: null
             });
         }
         finally {
-            set({ loading: false })
+            set({ loading: false, authChecked: true })
         }
     },
 
@@ -56,6 +60,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             const response = await auth.register(data)
             if (response.data.status === "success") {
                 await useAuthStore.getState().fetchUser()
+                if (!useAuthStore.getState().isAuthenticated) return { success: false }
                 showSuccess("تم التسجيل بنجاح")
                 return { success: true }
             } else {
@@ -69,10 +74,9 @@ export const useAuthStore = create<AuthState>((set) => ({
                 return { success: false }
             }
         } catch (err) {
-            set({
-                err: "Something went wrong"
-            })
-            showError("حدث خطا أثناء انشاء الحساب")
+            const message = getErrorMessage(err, "حدث خطأ أثناء إنشاء الحساب")
+            set({ err: message })
+            showError(message)
             return { success: false }
         } finally {
             set({
@@ -88,6 +92,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             const response = await auth.login(data);
             if (response.data.status === "success") {
                 await useAuthStore.getState().fetchUser();
+                if (!useAuthStore.getState().isAuthenticated) return { success: false }
                 showSuccess("تم تسجيل الدخول بنجاح")
                 return { success: true }
             }
@@ -97,8 +102,9 @@ export const useAuthStore = create<AuthState>((set) => ({
                 return { success: false }
             }
         } catch (err) {
-            set({ err: "حصل خطا ما" })
-            showError("حصل خطا ما")
+            const message = getErrorMessage(err, "حصل خطأ ما")
+            set({ err: message })
+            showError(message)
             return { success: false }
         } finally {
             set({ authLoading: false })
@@ -107,17 +113,16 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     logout: async () => {
         set({ loading: true })
-        const res = await auth.logout();
-        if (res.data.status === "success") {
-            set({
-                user: null,
-                isAuthenticated: false,
-                loading: false
-            });
+        try {
+            const res = await auth.logout();
+            if (res.data.status !== "success") {
+                throw new Error(getErrorMessage(res.data.data, "تعذر تسجيل الخروج"))
+            }
             showSuccess("تم تسجيل الخروج بنجاح")
-        } else {
-            set({ err: res.data as string })
-            showError(res.data as string)
+        } catch (err) {
+            showError(getErrorMessage(err, "تعذر تسجيل الخروج"))
+        } finally {
+            set({ user: null, isAuthenticated: false, loading: false, authChecked: true })
         }
     },
 
@@ -126,17 +131,33 @@ export const useAuthStore = create<AuthState>((set) => ({
         try {
             const res = await auth.updateUser(data)
             if (res.data.status === "success") {
-                set({ user: res.data })
+                set({ user: res.data.data })
                 showSuccess("تم التحديث بنجاح")
             } else {
-                set({ err: res.data })
-                showError(res.data)
+                const message = getErrorMessage(res.data.data, "تعذر تحديث البيانات")
+                set({ err: message })
+                showError(message)
             }
         } catch (err) {
-            set({ err: "حصل خطا ما" })
-            showSuccess("حصل خطا ما")
+            const message = getErrorMessage(err, "حصل خطأ ما")
+            set({ err: message })
+            showError(message)
         } finally {
             set({ loading: false })
         }
     }
 }));
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error) return error.message
+    if (typeof error === "object" && error !== null && "response" in error) {
+        const response = error.response
+        if (typeof response === "object" && response !== null && "data" in response) {
+            const data = response.data
+            if (typeof data === "object" && data !== null && "data" in data && typeof data.data === "string") {
+                return data.data
+            }
+        }
+    }
+    return fallback
+}

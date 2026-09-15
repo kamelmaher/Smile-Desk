@@ -50,3 +50,11 @@ app.use("/sms", smsRoutes)
 app.use("/statics", staticsRoutes)
 app.use("/invoice", invoiceRoutes)
 app.use("/assistant", assistantRoutes)
+
+app.use((err, req, res, next) => {
+    if (res.headersSent) return next(err)
+    return res.status(err.statusCode || 500).json({
+        status: "error",
+        data: "Internal Server Error",
+    })
+})

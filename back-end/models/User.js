@@ -7,8 +7,18 @@ const userSchema = new mongoose.Schema({
         ref: "clinic",
         default: null
     },
-    userName: String,
-    email: String,
+    userName: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        lowercase: true,
+        trim: true,
+    },
     password: String,
     phoneNumber: {
         type: String,

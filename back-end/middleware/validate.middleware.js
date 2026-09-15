@@ -17,15 +17,16 @@ const fieldNames = {
 module.exports = (schema) => {
     return (req, res, next) => {
         const result = schema.safeParse(req.body)
-        if (result.success)
+        if (result.success) {
+            req.body = result.data
             next()
-        else {
+        } else {
             const messages = result.error.issues.map((issue) => {
                 const field = fieldNames[issue.path[0]] || "البيانات"
                 return `${field}: ${issue.message}`
             })
 
-            return res.json({
+            return res.status(400).json({
                 status: statusText.ERROR,
                 data: messages.join("\n"),
             })

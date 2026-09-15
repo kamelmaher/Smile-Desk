@@ -1,12 +1,10 @@
-const { ERROR } = require("../data/statusText")
 const { MANAGER } = require("../data/roles")
 const statusText = require("../data/statusText")
-const jwt = require("jsonwebtoken")
-module.exports = async (req, res, next) => {
+module.exports = (req, res, next) => {
     const user = req.user
-    if (!user) return res.json({ status: statusText.ERROR, data: "User Not Found " })
+    if (!user) return res.status(401).json({ status: statusText.ERROR, data: "User Not Found" })
     if (user.role === MANAGER) {
-        next()
+        return next()
     }
-    else return res.json({ status: statusText.ERROR, data: "UnAuthorized" })
+    return res.status(403).json({ status: statusText.ERROR, data: "Unauthorized" })
 }

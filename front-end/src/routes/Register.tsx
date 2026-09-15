@@ -46,7 +46,7 @@ const RegisterPage: React.FC = () => {
                         <h2 className="text-2xl font-bold text-gray-800 text-right">إنشاء حساب جديد</h2>
                     </div>
 
-                    <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1 text-right">الاسم الكامل</label>
                             <input
@@ -124,7 +124,7 @@ const RegisterPage: React.FC = () => {
                         <button
                             type="submit"
                             className="md:col-span-2 bg-blue-600 text-white py-3 rounded-xl font-bold mt-4 hover:bg-blue-700 transition shadow-lg shadow-blue-100"
-                            onClick={handleSubmit}
+                            disabled={authLoading}
                         >
                             {
                                 authLoading ? <Spinner color='white' /> :

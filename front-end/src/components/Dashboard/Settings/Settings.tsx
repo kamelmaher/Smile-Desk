@@ -4,15 +4,24 @@ import WorkingHours from "./WorkingHours";
 import { uploadImage } from "../../../services/image";
 import Spinner from "../../Spinner";
 import { useLoadClinic, useUpdateClinic } from "../../../hooks/useClinics";
+import type { Clinic } from "../../../types/Clinic";
 
 export default function Settings() {
     const { data } = useLoadClinic()
-    
+
     const selectedClinic = data?.clinic || null
     const { mutateAsync, isPending } = useUpdateClinic()
-    const [form, setForm] = useState(selectedClinic)
-    const [image, setImage] = useState<string | null>(selectedClinic.logo || "")
+    const [form, setForm] = useState<Partial<Clinic>>({})
+    const [image, setImage] = useState<string | null>(null)
     const [imageLoading, setImageLoading] = useState(false)
+
+    useEffect(() => {
+        if (!selectedClinic) return
+        // Reset the editable form when the async clinic record changes.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setForm(selectedClinic)
+        setImage(selectedClinic.logo || null)
+    }, [selectedClinic])
     const handleChangeData = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value })
     }
@@ -27,14 +36,12 @@ export default function Settings() {
 
         // upload
         setImageLoading(true)
-        const url = await uploadImage(file)
-
-        // store in form state
-        setForm({
-            ...form,
-            logo: url,
-        })
-        setImageLoading(false)
+        try {
+            const url = await uploadImage(file)
+            setForm((previous) => ({ ...previous, logo: url }))
+        } finally {
+            setImageLoading(false)
+        }
     }
 
     const handleSubmitForm = async (e: React.FormEvent) => {

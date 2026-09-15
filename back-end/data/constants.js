@@ -1,6 +1,6 @@
 const MAIN_LIMIT = 6
 const MAX_APPOINTMENTS_FOR_PATIENT = 1
-const TRIAL_DAYS = 14
+const TRIAL_DAYS = 7
 
 module.exports = {
     MAIN_LIMIT,

@@ -38,7 +38,6 @@ export default function WorkingHours() {
     };
 
     const handleSave = async () => {
-        console.log("DATA TO SEND:", workingHours);
         await updateClinic({ workingHours })
     };
 

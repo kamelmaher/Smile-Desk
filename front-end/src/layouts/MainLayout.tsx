@@ -5,7 +5,7 @@ import { Slide, ToastContainer } from "react-toastify"
 // import { Analytics } from "@vercel/analytics/react"
 const MainLayout = () => {
     return (
-        <div className="min-h-screen bg-gray-50 font-sans">
+        <div dir="rtl" className="min-h-screen bg-gray-50 font-sans">
             <NavBar />
             <Outlet />
             <Footer />

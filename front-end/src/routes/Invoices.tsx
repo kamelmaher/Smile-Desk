@@ -21,7 +21,7 @@ export default function InvoicesPage() {
     }, [getOverview])
 
     const handleCreateInvoice = async (data: createInvoiceType) => {
-        await createInvoice(data)
+        return createInvoice(data)
     }
     return (
         <div className="space-y-6">

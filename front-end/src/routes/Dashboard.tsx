@@ -3,10 +3,14 @@ import { Outlet } from "react-router";
 import Spinner from "../components/Spinner";
 import DashboardLinks from "../components/Dashboard/DashboardLinks";
 import { useLoadClinic } from "../hooks/useClinics";
+import { plans } from "../data/constants";
+import { NavLink } from "react-router-dom";
 
 export default function Dashboard() {
     const { data, isLoading } = useLoadClinic()
     const selectedClinic = data?.clinic || null
+    const subscription = selectedClinic?.subscription
+    const isTrial = subscription?.plan === plans.TRIAL
 
     useEffect(() => {
         scrollTo(0, 0)
@@ -41,7 +45,16 @@ export default function Dashboard() {
             </aside>
 
             <main className="flex-1 p-4 md:p-8 space-y-8">
-                {isLoading ? <Spinner /> : <Outlet />}
+                {isLoading ? <Spinner /> :
+                    <>
+                        {isTrial && subscription?.trialEndsAt && (
+                            <div className="flex flex-col gap-2 rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-800 sm:flex-row sm:items-center sm:justify-between">
+                                <span>أنت تستخدم الفترة التجريبية المجانية.</span>
+                                <NavLink to="/pricing" className="font-semibold underline">عرض الخطط</NavLink>
+                            </div>
+                        )}
+                        <Outlet />
+                    </>}
             </main>
         </div>
     );

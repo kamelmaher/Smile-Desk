@@ -2,8 +2,8 @@ import { create } from "zustand";
 
 export type appointmentFilters = {
     page?: number,
-    dateRange?: string,
-    status?: string
+    dateRange?: "" | "today" | "upcoming" | "expired",
+    status?: "" | "pending" | "accepted" | "declined"
 }
 
 type appointmentState = {

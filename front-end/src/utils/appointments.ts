@@ -1,4 +1,3 @@
-import { APPOINTMENT_DURATION } from "../data/constants";
 import type { WorkingHours } from "../types/Clinic";
 
 import dayjs from 'dayjs';
@@ -12,13 +11,10 @@ export const getAppointmentDate = (date: string) => dayjs(date).format('DD/MM/YY
 export const checkExpired = (date: string) => dayjs(date).isBefore(dayjs());
 
 export const getAvailableHours = (workingHours: WorkingHours[], date: string) => {
-    const selectedDate = new Date(date);
+    const selectedDate = dayjs(date);
     const today = dayjs()
 
-    const isToday =
-        selectedDate.getFullYear() === today.year() &&
-        selectedDate.getMonth() === today.month() &&
-        selectedDate.getDate() === today.date();
+    const isToday = selectedDate.isSame(today, "day");
 
     const day = (dayjs(date).day() + 1) % 7;
 
@@ -27,40 +23,34 @@ export const getAvailableHours = (workingHours: WorkingHours[], date: string) =>
         return [];
     }
 
-    const startHour = parseInt(workingDay.start.split(":")[0]);
-    const endHour = parseInt(workingDay.end.split(":")[0]);
+    const [startHours, startMinutes] = workingDay.start.split(":").map(Number);
+    const [endHours, endMinutes] = workingDay.end.split(":").map(Number);
+    const startTime = startHours * 60 + startMinutes;
+    const endTime = endHours * 60 + endMinutes;
 
-    let effectiveStart = startHour;
+    let effectiveStart = startTime;
 
     if (isToday) {
-        const currentHour = today.hour();
-        effectiveStart = Math.max(startHour, currentHour + 1);
+        const currentTime = today.hour() * 60 + today.minute();
+        const nextSlot = Math.ceil(currentTime / 30) * 30;
+        effectiveStart = Math.max(startTime, nextSlot);
     }
 
-    return generateSlots(effectiveStart, endHour);
+    return generateSlots(effectiveStart, endTime);
 }
 
-const generateSlots = (startHour: number, endHour: number) => {
+const generateSlots = (startMinutes: number, endMinutes: number) => {
     const arr: string[] = [];
 
-    for (let i = startHour; i < endHour; i += APPOINTMENT_DURATION) {
-        const hours = Math.floor(i);
-        const minutes = (i % 1) * 60;
-        const hour = dayjs()
-            .hour(hours)
-            .minute(minutes)
-            .format("HH:mm");
-        arr.push(hour);
+    for (let minutes = startMinutes; minutes + 30 <= endMinutes; minutes += 30) {
+        arr.push(`${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`);
     }
 
     return arr;
 };
 
 export const getMinDate = () => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    d.setHours(0, 0, 0, 0);
-    return d.toISOString().split("T")[0];;
+    return dayjs().add(1, "day").format("YYYY-MM-DD");
 };
 
 export const isWorkingDay = (workingHours: WorkingHours[], date: string) => {

@@ -16,8 +16,11 @@ export const useUserStore = create<UserState>((set, get) => ({
     setPage: (page) => set({ page }),
     getUsers: async () => {
         set({ loading: true })
-        const res = await auth.getUsers(get().page)
-        if (res.data.status == "success") set({ users: res.data.data })
-        set({ loading: false })
+        try {
+            const res = await auth.getUsers(get().page)
+            if (res.data.status === "success") set({ users: res.data.data })
+        } finally {
+            set({ loading: false })
+        }
     }
 }))

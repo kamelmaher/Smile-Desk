@@ -1,5 +1,5 @@
 import { AppointmentFilter } from "../../../data/AppointmentsFilter"
-import { useAppointmentStore } from "../../../store/appointment.store";
+import { useAppointmentStore, type appointmentFilters } from "../../../store/appointment.store";
 
 
 
@@ -12,8 +12,8 @@ const AppointmentsFilter = () => {
             <div className="relative w-full sm:w-64">
                 <select
                     className="w-full appearance-none px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition outline-none cursor-pointer"
-                    defaultValue=""
-                    onChange={e => setFilters({ ...filters, dateRange: e.target.value })}
+                    value={filters.dateRange || ""}
+                    onChange={e => setFilters({ ...filters, dateRange: e.target.value as appointmentFilters["dateRange"], page: 1 })}
                 >
                     {
                         Object.values(AppointmentFilter).map(item => <option key={item.text} value={item.value}>
@@ -30,8 +30,8 @@ const AppointmentsFilter = () => {
             <div className="relative w-full sm:w-64">
                 <select
                     className="w-full appearance-none px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition outline-none cursor-pointer"
-                    defaultValue=""
-                    onChange={e => setFilters({ ...filters, status: e.target.value })}
+                    value={filters.status || ""}
+                    onChange={e => setFilters({ ...filters, status: e.target.value as appointmentFilters["status"], page: 1 })}
                 >
                     <option value="">جميع الحالات</option>
                     <option value="pending">قيد الانتظار</option>

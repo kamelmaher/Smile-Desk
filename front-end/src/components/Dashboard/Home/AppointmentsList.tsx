@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react"
 import type { Appointment } from "../../../types/Appointment"
 import { getAppointmentHour, getAppointmentDate } from "../../../utils/appointments"
@@ -10,7 +9,7 @@ type AppointmentsListProps = {
     loading: boolean
 }
 const AppointmentsList = ({ list, title, loading }: AppointmentsListProps) => {
-    const [selected, setSelected] = useState<any | null>(null);
+    const [selected, setSelected] = useState<Appointment | null>(null);
     return (
         <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-[420px] flex flex-col overflow-x-hidden">
 
@@ -32,7 +31,7 @@ const AppointmentsList = ({ list, title, loading }: AppointmentsListProps) => {
                         {/* LIST */}
                         <div className="flex-1 overflow-y-auto space-y-3 relative">
 
-                            {list.map((e: any) => {
+                            {list.map((e) => {
                                 const isSelected = selected?._id === e._id;
                                 const isBlurred = selected && !isSelected;
 

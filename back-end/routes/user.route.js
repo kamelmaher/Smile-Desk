@@ -11,7 +11,7 @@ const verifyManager = require("../middleware/verifyManager")
 const limiter = require("../middleware/limiter")
 
 // Validations 
-const { registerSchema, loginSchema } = require("../validations/auth.validation")
+const { registerSchema, loginSchema, updateUserSchema } = require("../validations/auth.validation")
 
 
 
@@ -21,7 +21,7 @@ router.post("/register", limiter(24, 8), validate(registerSchema), register)
 router.post("/logout", logout)
 
 router.get("/me", verifyToken, me)
-router.patch("/", limiter(12, 3), verifyToken, updateUser)
+router.patch("/", limiter(12, 3), verifyToken, validate(updateUserSchema), updateUser)
 
 router.get("/", verifyToken, verifyManager, getAllUsers)
 module.exports = router

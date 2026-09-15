@@ -33,6 +33,9 @@ export const useUpdateClinic = () => {
             qc.invalidateQueries({
                 queryKey: ClinicKey
             })
+        },
+        onError: (error) => {
+            showError(error.message || "تعذر تحديث بيانات العيادة")
         }
     })
 }

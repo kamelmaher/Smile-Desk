@@ -1,48 +1,16 @@
-const Appointment = require("../models/Appointment")
+const Clinic = require("../models/Clinic")
 const statusText = require("../data/statusText")
-const dayjs = require("dayjs")
+const { createAppointment, toErrorResponse } = require("../services/appointment.service")
 
 module.exports = async (appt, clinicId) => {
     try {
-        if (!clinicId) return ({ status: statusText.ERROR, data: "يجب اختيار عيادة" })
-
-        if (!appt.date) {
-            return ({ status: statusText.ERROR, message: "التاريخ مطلوب" });
-        }
-
-        if (dayjs(appt.date).isBefore(dayjs())) {
-            return ({ status: statusText.ERROR, data: "لا يمكن حجز موعد في تاريخ سابق" });
-        }
-
-        const existingAppointment = await Appointment.findOne({
-            clinicId,
-            date: appt.date
-        });
-
-        if (existingAppointment) {
-            return ({
-                status: statusText.ERROR,
-                data: "هذا الموعد محجوز مسبقاً، يرجى اختيار وقت آخر"
-            });
-        }
-
-        const newAppointment = new Appointment({
-            clinicId,
-            ...appt
-        });
-
-        await newAppointment.save();
-
+        const clinic = await Clinic.findById(clinicId)
+        const appointment = await createAppointment(appt, clinic)
         return ({
             status: statusText.SUCCESS,
-            data: newAppointment
+            data: appointment
         });
-
     } catch (err) {
-        console.log(err)
-        return ({
-            status: statusText.ERROR,
-            data: "حدث خطأ تقني، يرجى المحاولة لاحقاً"
-        });
+        return toErrorResponse(err)
     }
 }

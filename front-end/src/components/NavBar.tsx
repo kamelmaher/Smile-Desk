@@ -5,20 +5,19 @@ import { useAuthStore } from '../store/auth.store'
 import { ChevronDown, X, Menu } from 'lucide-react'
 
 const NavBar = () => {
-    const { isAuthenticated, user, fetchUser, loading, logout } = useAuthStore()
+    const { isAuthenticated, authChecked, user, fetchUser, loading, logout } = useAuthStore()
     const navigate = useNavigate()
     useEffect(() => {
-        if (!isAuthenticated)
+        if (!authChecked)
             fetchUser()
-    }, [fetchUser, isAuthenticated])
+    }, [authChecked, fetchUser])
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const handler = (e: any) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        const handler = (e: MouseEvent) => {
+            if (dropdownRef.current && e.target instanceof Node && !dropdownRef.current.contains(e.target)) {
                 setDropdownOpen(false);
             }
         };

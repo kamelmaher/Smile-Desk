@@ -8,5 +8,5 @@ export const appointment = {
     loadAppointments: async (filters: appointmentFilters) => get(baseUrl, { params: filters }),
     confirm: (id: string) => patch(`${baseUrl}/confirm/${id}`),
     decline: (id: string) => patch(`${baseUrl}/decline/${id}`),
-    getBooked: (date: string) => get(`${baseUrl}/booked?date=${date}`),
+    getBooked: (date: string, clinicId: string) => get(`${baseUrl}/booked/${clinicId}`, { params: { date } }),
 };

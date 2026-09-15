@@ -11,7 +11,8 @@ const verifyToken = require("../middleware/verifyToken")
 const checkSubscription = require("../middleware/checkSubscription")
 
 
-router.post("/", validate(appointmentSchema), createAppointment)
+router.post("/", validate(appointmentSchema), checkSubscription, createAppointment)
+router.get("/booked/:clinicId", checkSubscription, getBooked)
 
 router.use(verifyToken)
 router.use(checkSubscription)

@@ -5,7 +5,7 @@ import Spinner from "../Spinner"
 type CreateInvoiceModalProps = {
     setIsModalOpen: (isOpen: boolean) => void
     isOpen: boolean,
-    handleCreateInvoice: (data: createInvoiceType) => Promise<void>
+    handleCreateInvoice: (data: createInvoiceType) => Promise<boolean>
 }
 const CreateInvoiceModal = ({ setIsModalOpen, isOpen, handleCreateInvoice }: CreateInvoiceModalProps) => {
     const { loading, err } = useInovicesStore()
@@ -16,8 +16,8 @@ const CreateInvoiceModal = ({ setIsModalOpen, isOpen, handleCreateInvoice }: Cre
     });
 
     const createInvoice = async () => {
-        await handleCreateInvoice(invoiceData as createInvoiceType)
-        if (!err) setIsModalOpen(false)
+        const success = await handleCreateInvoice(invoiceData as createInvoiceType)
+        if (success) setIsModalOpen(false)
     }
 
     return (

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from "zustand";
 import { invoice } from "../services/invoice";
 type Invoice = {
@@ -24,7 +23,7 @@ type invoiceState = {
     err: string | null,
     getInvoices: ({ type, minAmount, maxAmount }: invoiceQueryFilters) => Promise<void>,
     getOverview: () => Promise<void>,
-    createInvoice: (data: createInvoiceType) => Promise<void>
+    createInvoice: (data: createInvoiceType) => Promise<boolean>
 }
 
 export type invoiceQueryFilters = {
@@ -48,9 +47,9 @@ export const useInovicesStore = create<invoiceState>((set, get) => ({
         set({ loading: true, err: null })
         try {
             const res = await invoice.getInvoices({ type, minAmount, maxAmount })
-            set({ invoices: res.data })
-        } catch (err: any) {
-            set({ err: err.response.data.message })
+            set({ invoices: res.data.invoices })
+        } catch (err: unknown) {
+            set({ err: getInvoiceError(err, "Unable to load invoices") })
         } finally {
             set({ loading: false })
         }
@@ -59,9 +58,9 @@ export const useInovicesStore = create<invoiceState>((set, get) => ({
         set({ loading: true, err: null })
         try {
             const res = await invoice.getOverview()
-            set({ overview: res.data })
-        } catch (err: any) {
-            set({ err: err.response.data.message })
+            set({ overview: res.data.overview })
+        } catch (err: unknown) {
+            set({ err: getInvoiceError(err, "Unable to load invoice overview") })
         } finally {
             set({ loading: false })
         }
@@ -70,12 +69,28 @@ export const useInovicesStore = create<invoiceState>((set, get) => ({
         set({ loading: true, err: null })
         try {
             const res = await invoice.createInvoice(data)
-            set({ invoices: [res.data, ...get().invoices] })
-            get().getOverview()
-        } catch (err: any) {
-            set({ err: err.response.data.message })
+            set({ invoices: [res.data.data, ...get().invoices] })
+            await get().getOverview()
+            return true
+        } catch (err: unknown) {
+            set({ err: getInvoiceError(err, "Unable to create invoice") })
+            return false
         } finally {
             set({ loading: false })
         }
     }
 }))
+
+const getInvoiceError = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message !== "Request failed") return error.message
+    if (typeof error === "object" && error !== null && "response" in error) {
+        const response = error.response
+        if (typeof response === "object" && response !== null && "data" in response) {
+            const data = response.data
+            if (typeof data === "object" && data !== null && "data" in data && typeof data.data === "string") {
+                return data.data
+            }
+        }
+    }
+    return fallback
+}

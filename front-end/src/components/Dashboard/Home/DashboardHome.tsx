@@ -6,9 +6,10 @@ import { NavLink } from "react-router-dom"
 import { useLoadAppointments } from "../../../hooks/useAppointments"
 import { useLoadClinic } from "../../../hooks/useClinics"
 import { useLoadStatics } from "../../../hooks/useStatics"
+import type { appointmentFilters } from "../../../store/appointment.store"
 
 export default function DashboardHome() {
-    const [filters] = useState({ dateRange: "today", status: "", page: 1 })
+    const [filters] = useState<appointmentFilters>({ dateRange: "today", status: "", page: 1 })
     const { data, isLoading } = useLoadAppointments(filters)
     const { data: clinic } = useLoadClinic()
 
@@ -55,20 +56,32 @@ export default function DashboardHome() {
                                 <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition">
                                     <p className="text-gray-500 text-sm">مجموع الحجوزات </p>
                                     <h3 className="text-3xl font-bold text-blue-600 mt-2">
-                                        {statics?.totalAppointments}
+                                        {statics?.totalAppointments ?? 0}
                                     </h3>
                                 </div>
                                 <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition">
                                     <p className="text-gray-500 text-sm">بانتظار التأكيد </p>
                                     <h3 className="text-3xl font-bold text-blue-600 mt-2">
-                                        {statics?.pendingAppointments}
+                                        {statics?.pendingAppointments ?? 0}
+                                    </h3>
+                                </div>
+                                <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition">
+                                    <p className="text-gray-500 text-sm">المواعيد المؤكدة</p>
+                                    <h3 className="text-3xl font-bold text-green-600 mt-2">
+                                        {statics?.acceptedAppointments ?? 0}
                                     </h3>
                                 </div>
 
                                 <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition">
                                     <p className="text-gray-500 text-sm">الملغاة </p>
                                     <h3 className="text-3xl font-bold text-blue-600 mt-2">
-                                        {statics?.declinedAppointments}
+                                        {statics?.declinedAppointments ?? 0}
+                                    </h3>
+                                </div>
+                                <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition">
+                                    <p className="text-gray-500 text-sm">المواعيد القادمة</p>
+                                    <h3 className="text-3xl font-bold text-blue-600 mt-2">
+                                        {statics?.upcomingAppointments ?? 0}
                                     </h3>
                                 </div>
                             </>

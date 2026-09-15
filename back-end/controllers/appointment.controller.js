@@ -1,73 +1,33 @@
 const Appointment = require("../models/Appointment")
+const mongoose = require("mongoose")
 const statusText = require("../data/statusText")
-const { MAIN_LIMIT, MAX_APPOINTMENTS_FOR_PATIENT } = require("../data/constants")
+const { MAIN_LIMIT } = require("../data/constants")
 const { ACCEPTED, DECLINED, PENDING } = require("../data/appointmentStatus")
-const { removeCancelled, checkIfTwoPendingAppointments, getTodayDate, getUpcomingDate, getExpiredDate } = require("../utils/appointments")
+const { getTodayDate, getUpcomingDate, getExpiredDate } = require("../utils/appointments")
+const { createAppointment: bookAppointment } = require("../services/appointment.service")
 const dayjs = require('dayjs');
 
 const createAppointment = async (req, res) => {
-    const data = req.body;
     try {
-        if (!data.clinicId) return res.json({ status: statusText.ERROR, data: "يجب اختيار عيادة" })
-
-        if (!data.date) {
-            return res.status(400).json({ status: statusText.ERROR, message: "التاريخ مطلوب" });
-        }
-
-        if (dayjs(data.date).isBefore(dayjs())) {
-            return res.status(400).json({ status: statusText.ERROR, data: "لا يمكن حجز موعد في تاريخ سابق" });
-        }
-
-        const pendingAppointmentsCount = await Appointment.countDocuments({
-            clinicId: data.clinicId,
-            patientPhoneNumber: data.patientPhoneNumber,
-            status: PENDING,
-        });
-
-        if (pendingAppointmentsCount >= MAX_APPOINTMENTS_FOR_PATIENT) {
-            return res.status(400).json({
-                status: statusText.ERROR,
-                data: "لا يمكن حجز أكثر من موعد قيد الانتظار لهذا الرقم",
-            });
-        }
-
-        const existingAppointment = await Appointment.findOne({
-            clinicId: data.clinicId,
-            date: data.date
-        });
-
-        if (existingAppointment) {
-            return res.status(400).json({
-                status: statusText.ERROR,
-                data: "هذا الموعد محجوز مسبقاً، يرجى اختيار وقت آخر"
-            });
-        }
-
-        const newAppointment = new Appointment({
-            ...data
-        });
-
-        await newAppointment.save();
-
+        const newAppointment = await bookAppointment(req.body, req.clinic)
         return res.status(201).json({
             status: statusText.SUCCESS,
             data: newAppointment
         });
-
     } catch (err) {
-        console.log(err)
-        return res.status(500).json({
+        return res.status(err.statusCode || 500).json({
             status: statusText.ERROR,
-            data: "حدث خطأ تقني، يرجى المحاولة لاحقاً"
-        });
+            data: err.statusCode ? err.message : "حدث خطأ تقني، يرجى المحاولة لاحقاً"
+        })
     }
 }
 
 const loadAppointments = async (req, res) => {
     const user = req.user;
     const { dateRange, page, status } = req.query
-    const skip = MAIN_LIMIT * (+page - 1)
-    if (!user) return res.json({ status: statusText.ERROR, data: "UnAuthorized" })
+    const currentPage = Math.max(Number.parseInt(page, 10) || 1, 1)
+    const skip = MAIN_LIMIT * (currentPage - 1)
+    if (!user?.clinicId) return res.status(401).json({ status: statusText.ERROR, data: "UnAuthorized" })
     try {
         let filters = { clinicId: user.clinicId }
         switch (dateRange) {
@@ -91,57 +51,70 @@ const loadAppointments = async (req, res) => {
             Appointment.find(filters).sort({ date: 1 }).limit(MAIN_LIMIT).skip(skip),
             Appointment.countDocuments(filters)
         ])
-        res.json({
+        return res.json({
             status: statusText.SUCCESS,
             appointments,
             pages: Math.ceil(total / MAIN_LIMIT)
         });
     } catch (err) {
-        console.log(err)
-        return res.json({
+        return res.status(500).json({
             status: statusText.ERROR,
-            msg: "Internal Server Error",
+            data: "Internal Server Error",
         });
     }
 }
 
 const confirmAppointment = async (req, res) => {
     const { id } = req.params;
-    if (!id) return res.json({ status: statusText.FAIL, data: "Id is required" })
+    if (!id || !mongoose.isValidObjectId(id)) return res.status(400).json({ status: statusText.FAIL, data: "Invalid appointment id" })
     try {
-        const appointment = await Appointment.findByIdAndUpdate(id, { status: ACCEPTED }, { returnDocument: "after" })
+        const appointment = await Appointment.findOneAndUpdate(
+            { _id: id, clinicId: req.user.clinicId, status: PENDING },
+            { status: ACCEPTED },
+            { new: true, runValidators: true }
+        )
         if (appointment) {
             return res.json({ status: statusText.SUCCESS, data: appointment })
         }
-        return res.json({ status: statusText.FAIL, data: "Failed Accept Appointment" })
+        return res.status(404).json({ status: statusText.FAIL, data: "Appointment not found or already processed" })
     } catch (err) {
-        return res.json({ status: statusText.ERROR, data: "Internal Server Error" })
+        return res.status(500).json({ status: statusText.ERROR, data: "Internal Server Error" })
     }
 }
 
 const declineAppointment = async (req, res) => {
     const { id } = req.params;
-    if (!id) return res.json({ status: statusText.FAIL, data: "Id is required" })
+    if (!id || !mongoose.isValidObjectId(id)) return res.status(400).json({ status: statusText.FAIL, data: "Invalid appointment id" })
     try {
-        const appointment = await Appointment.findByIdAndUpdate(id, { status: DECLINED }, { returnDocument: "after" })
+        const appointment = await Appointment.findOneAndUpdate(
+            { _id: id, clinicId: req.user.clinicId, status: PENDING },
+            { status: DECLINED },
+            { new: true, runValidators: true }
+        )
         if (appointment) {
             return res.json({ status: statusText.SUCCESS, data: appointment })
         }
-        return res.json({ status: statusText.FAIL, data: "Failed Decline Appointment" })
+        return res.status(404).json({ status: statusText.FAIL, data: "Appointment not found or already processed" })
     } catch (err) {
-        return res.json({ status: statusText.ERROR, data: "Internal Server Error" })
+        return res.status(500).json({ status: statusText.ERROR, data: "Internal Server Error" })
     }
 }
 
 const getBooked = async (req, res) => {
     const { date } = req.query;
-    const { clinicId } = req.user;
+    const clinicId = req.clinic?._id || req.user?.clinicId;
 
+    if (!clinicId) {
+        return res.status(400).json({ status: statusText.ERROR, data: "Clinic id is required" })
+    }
     if (!date) {
-        return res.json({
+        return res.status(400).json({
             status: statusText.ERROR,
             data: "Date is required",
         });
+    }
+    if (!dayjs(date).isValid()) {
+        return res.status(400).json({ status: statusText.ERROR, data: "Invalid date" })
     }
 
     try {
@@ -150,6 +123,7 @@ const getBooked = async (req, res) => {
 
         const appointments = await Appointment.find({
             clinicId,
+            status: { $in: [PENDING, ACCEPTED] },
             date: {
                 $gte: startOfDay.toDate(),
                 $lt: startOfNextDay.toDate()
@@ -157,10 +131,10 @@ const getBooked = async (req, res) => {
         });
 
         const bookedHours = appointments.map((a) => {
-            return dayjs(a.date).format("hh:mm");
+            return dayjs(a.date).format("HH:mm");
         });
 
-        return res.json({
+        return res.status(200).json({
             status: statusText.SUCCESS,
             data: bookedHours,
         });

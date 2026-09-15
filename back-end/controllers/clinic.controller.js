@@ -6,85 +6,89 @@ const getSlug = require("../utils/geSlug")
 const dayjs = require("dayjs")
 
 const getSubscribedClinics = async (req, res) => {
-    const page = req.query.page || 1
+    const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1)
     const skip = (page - 1) * MAIN_LIMIT
-    const clinics = await Clinic.find({
-        "subscription.plan": {
-            $in: [
-                plans.ANNUAL,
-                plans.MONTHLY,
-                plans.LIFETIME
-            ]
-        },
-        "subscription.currentPeriodEnd": {
-            $gt: dayjs()
-        }
-    }).limit(MAIN_LIMIT).skip(skip)
-    const total = await Clinic.countDocuments()
-    res.json({ status: statusText.SUCCESS, clinics, pages: Math.ceil(total / MAIN_LIMIT) })
+    const now = new Date()
+    const activeFilter = {
+        $or: [
+            { "subscription.plan": plans.TRIAL, "subscription.status": "active", "subscription.trialEndsAt": { $gt: now } },
+            { "subscription.plan": { $in: [plans.MONTHLY, plans.ANNUAL] }, "subscription.status": "active", "subscription.currentPeriodEnd": { $gt: now } },
+            { "subscription.plan": plans.LIFETIME, "subscription.status": "active" },
+        ],
+    }
+
+    try {
+        const [clinics, total] = await Promise.all([
+            Clinic.find(activeFilter).sort({ createdAt: -1 }).limit(MAIN_LIMIT).skip(skip),
+            Clinic.countDocuments(activeFilter),
+        ])
+        return res.json({ status: statusText.SUCCESS, clinics, pages: Math.ceil(total / MAIN_LIMIT) })
+    } catch {
+        return res.status(500).json({ status: statusText.ERROR, data: "Unable to load clinics" })
+    }
 }
 
 const getClinicBySlug = async (req, res) => {
     const { slug } = req.params;
-    if (!slug)
-        return res.json({ status: statusText.ERROR, data: "Clinic Not Found" })
-    const clinic = await Clinic.findOne({ slug })
-    if (!clinic)
-        return res.json({ status: statusText.ERROR, data: "Clinic Not Found" })
-    res.json({ status: statusText.SUCCESS, clinic })
+    if (!slug) return res.status(400).json({ status: statusText.ERROR, data: "Clinic slug is required" })
+    try {
+        const clinic = await Clinic.findOne({ slug: slug.trim().toLowerCase() })
+        if (!clinic) return res.status(404).json({ status: statusText.ERROR, data: "Clinic Not Found" })
+        return res.json({ status: statusText.SUCCESS, clinic })
+    } catch {
+        return res.status(500).json({ status: statusText.ERROR, data: "Unable to load clinic" })
+    }
 }
 
 const updateClinic = async (req, res) => {
     const { clinicId } = req.user;
-    if (!clinicId) return res.json({ status: statusText.FAIL, data: "Id is required" })
-    const allowedFields = ["clinicName", "email", "phoneNumber", "description", "logo", "address", "workingHours"];
-    const updateData = {};
-
-    allowedFields.forEach((field) => {
-        if (req.body[field] !== undefined) {
-            updateData[field] = req.body[field];
-        }
-    });
+    if (!clinicId) return res.status(401).json({ status: statusText.ERROR, data: "Clinic id is required" })
+    const updateData = { ...req.body };
     try {
-        let newClinic;
-        const clinicDetails = await Clinic.findOne({ _id: clinicId })
-        if (!clinicDetails) return res.json({ status: statusText.ERROR, data: "Clinic not found" })
         if (updateData.clinicName) {
-            if (clinicDetails.clinicName === updateData.clinicName) {
-                newClinic = await Clinic.findByIdAndUpdate(clinicId, updateData, { returnDocument: "after" })
-            } else {
-                newClinic = await Clinic.findByIdAndUpdate(clinicId, { ...updateData, slug: getSlug(req.body.clinicName) }, { returnDocument: "after" })
-            }
-        } else newClinic = await Clinic.findByIdAndUpdate(clinicId, updateData, { returnDocument: "after" })
-        res.json({ status: statusText.SUCCESS, data: newClinic })
+            const slug = getSlug(updateData.clinicName)
+            const duplicate = await Clinic.findOne({
+                $or: [{ clinicName: updateData.clinicName }, { slug }],
+                _id: { $ne: clinicId },
+            })
+            if (duplicate) return res.status(409).json({ status: statusText.FAIL, data: "Clinic name is already in use" })
+            updateData.slug = slug
+        }
+
+        const clinic = await Clinic.findByIdAndUpdate(
+            clinicId,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        )
+        if (!clinic) return res.status(404).json({ status: statusText.ERROR, data: "Clinic not found" })
+        return res.json({ status: statusText.SUCCESS, data: clinic })
     } catch (err) {
-        res.json({ status: statusText.ERROR, data: "Internal Server Error" })
+        if (err?.code === 11000) return res.status(409).json({ status: statusText.FAIL, data: "Clinic name or slug is already in use" })
+        return res.status(500).json({ status: statusText.ERROR, data: "Unable to update clinic" })
     }
 }
 
 const getClinicDetails = async (req, res) => {
-    const user = req.user;
-    if (!user) return res.json({ status: statusText.ERROR, data: "UnAuthorized" })
-    const clinic = await Clinic.findOne({ userId: user._id })
-    if (clinic) return res.json({ status: statusText.SUCCESS, clinic })
-    res.json({ status: statusText.FAIL, data: "Clinic Not Found" })
+    if (req.clinic) return res.json({ status: statusText.SUCCESS, clinic: req.clinic })
+    return res.status(404).json({ status: statusText.FAIL, data: "Clinic Not Found" })
 }
 
 const getAllClinics = async (req, res) => {
-    const clinics = await Clinic.find();
-    return res.json({ status: statusText.SUCCESS, clinics })
+    try {
+        const clinics = await Clinic.find().sort({ createdAt: -1 });
+        return res.json({ status: statusText.SUCCESS, clinics })
+    } catch {
+        return res.status(500).json({ status: statusText.ERROR, data: "Unable to load clinics" })
+    }
 }
 
 const subscribe = async (req, res) => {
     try {
         const { clinicId, plan } = req.body;
-        if (!clinicId) return res.json({ status: statusText.ERROR, data: "Clinic id is required" })
-        if (!Object.values(plans).includes(plan) || plan === plans.TRIAL) {
-            return res.json({ status: statusText.FAIL, data: "not a Valid Plan" })
-        }
+        if (!clinicId) return res.status(400).json({ status: statusText.ERROR, data: "Clinic id is required" })
 
         const clinic = await Clinic.findById(clinicId)
-        if (!clinic) return res.json({ status: statusText.ERROR, data: "العيادة غير موجودة" })
+        if (!clinic) return res.status(404).json({ status: statusText.ERROR, data: "العيادة غير موجودة" })
 
         const now = dayjs()
         const currentPeriodEnd = clinic.subscription?.currentPeriodEnd
@@ -113,7 +117,7 @@ const subscribe = async (req, res) => {
             { new: true, runValidators: true }
         )
 
-        res.json({ status: statusText.SUCCESS, data: updated })
+        return res.json({ status: statusText.SUCCESS, data: updated })
     } catch (err) {
         res.status(500).json({ status: statusText.ERROR, data: err.message || "Internal Server Error" })
     }

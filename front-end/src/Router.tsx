@@ -14,17 +14,20 @@ import Prices from "./routes/Prices";
 import FeaturesPage from "./routes/Features";
 import Plan from "./components/Dashboard/Plan";
 import InvoicesPage from "./routes/Invoices";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
         <Route element={<MainLayout />} path="/">
             <Route index element={<HomePage />} />
-            <Route path="/dashboard" element={<Dashboard />}>
-                <Route index element={<DashboardHome />} />
-                <Route path="appointments" element={<Appointments />} />
-                <Route path="invoices" element={<InvoicesPage />} />
-                <Route path="plan" element={<Plan />} />
-                <Route path="settings" element={<Settings />} />
+            <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<Dashboard />}>
+                    <Route index element={<DashboardHome />} />
+                    <Route path="appointments" element={<Appointments />} />
+                    <Route path="invoices" element={<InvoicesPage />} />
+                    <Route path="plan" element={<Plan />} />
+                    <Route path="settings" element={<Settings />} />
+                </Route>
             </Route>
             <Route path="/clinic/:slug" element={<ClinicPage />} />
             <Route path="/clinics" element={<ClinicsPage />} />
@@ -32,6 +35,8 @@ export const router = createBrowserRouter(
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/pricing" element={<Prices />} />
             <Route path="/features" element={<FeaturesPage />} />
-            <Route path="/manager-dashboard" element={<ManagerDashboard />} />
+            <Route element={<ProtectedRoute role="manager" />}>
+                <Route path="/manager-dashboard" element={<ManagerDashboard />} />
+            </Route>
         </Route>
     ))

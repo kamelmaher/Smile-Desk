@@ -4,14 +4,21 @@ import { plans } from "../../data/constants";
 import { useLoadClinic } from "../../hooks/useClinics";
 
 const Plan = () => {
-    const { data } = useLoadClinic()
+    const { data, isLoading, isError } = useLoadClinic()
     const selectedClinic = data?.clinic || null
-    
-    const daysLeft = dayjs(selectedClinic.validTo).diff(dayjs(), 'day');
-    const isExpired = daysLeft < 0;
-    const planType = selectedClinic.plan === plans.ANNUAL ? 'الخطة السنوية' :
-        selectedClinic.plan === plans.MONTHLY ?
-            'الخطة الشهرية' : selectedClinic.plan === plans.LIFETIME ? "مدى الحياة" : "الخطة المجانية"
+
+    if (isLoading) return <div className="p-6 text-gray-500">جاري تحميل بيانات الاشتراك...</div>
+    if (isError || !selectedClinic) return <div className="p-6 text-red-600">تعذر تحميل بيانات الاشتراك</div>
+
+    const subscription = selectedClinic.subscription
+    const expirationDate = subscription.plan === plans.LIFETIME
+        ? undefined
+        : subscription.currentPeriodEnd || subscription.trialEndsAt
+    const daysLeft = expirationDate ? dayjs(expirationDate).diff(dayjs(), "day") : Infinity
+    const isExpired = subscription.status !== "active" || daysLeft < 0
+    const planType = subscription.plan === plans.ANNUAL ? "الخطة السنوية" :
+        subscription.plan === plans.MONTHLY ? "الخطة الشهرية" :
+            subscription.plan === plans.LIFETIME ? "مدى الحياة" : "الخطة المجانية"
 
 
     return (
@@ -37,7 +44,7 @@ const Plan = () => {
                 <div className="space-y-1">
                     <p className="text-gray-500 text-sm">تاريخ انتهاء الصلاحية</p>
                     <p className="text-lg font-semibold">
-                        {dayjs(selectedClinic.validTo).format('DD MMMM YYYY')}
+                        {expirationDate ? dayjs(expirationDate).format("DD MMMM YYYY") : "بدون انتهاء"}
                     </p>
                 </div>
 
@@ -45,7 +52,7 @@ const Plan = () => {
                 <div className="space-y-1">
                     <p className="text-gray-500 text-sm">الوقت المتبقي</p>
                     <p className={`text-lg font-bold ${daysLeft <= 3 ? 'text-orange-500' : 'text-gray-800'}`}>
-                        {isExpired ? 'انتهت الصلاحية' : `${daysLeft} يوم`}
+                        {isExpired ? "انتهت الصلاحية" : subscription.plan === plans.LIFETIME ? "مدى الحياة" : `${daysLeft} يوم`}
                     </p>
                 </div>
             </div>
@@ -54,7 +61,7 @@ const Plan = () => {
                 <div className="w-full bg-gray-100 rounded-full h-2">
                     <div
                         className={`h-2 rounded-full ${daysLeft <= 3 ? 'bg-orange-500' : 'bg-blue-500'}`}
-                        style={{ width: `${Math.max(0, Math.min(100, (daysLeft / 30) * 100))}%` }}
+                        style={{ width: `${subscription.plan === plans.LIFETIME ? 100 : Math.max(0, Math.min(100, (daysLeft / 30) * 100))}%` }}
                     ></div>
                 </div>
             </div>

@@ -19,9 +19,7 @@ const Appointment = ({ appointment }: AppointmentProps) => {
                     {
                         isExpired &&
                         <p className="bg-red-700 text-white p-[5px] rounded-2xl text-sm">
-                            منتهي - {
-                                status == "accepted" ? "تم التأكيد" : "لم يتم التأكيد"
-                            }
+                            منتهي - {status === "accepted" ? "تم التأكيد" : status === "declined" ? "ملغى" : "بانتظار التأكيد"}
                         </p>
                     }
                 </div>
@@ -37,7 +35,7 @@ const Appointment = ({ appointment }: AppointmentProps) => {
             </div>
 
             {/* Options */}
-            <AppointmentOptions _id={_id!} isExpired={isExpired} status={status} />
+            {_id && <AppointmentOptions _id={_id} isExpired={isExpired} status={status} />}
 
             {notes && <div>الملاحظات: {notes}</div>}
         </div>

@@ -4,7 +4,7 @@ const { DEFAULT_CLINIC_WORKING_HOURS } = require("../data/clinic")
 
 const clinicSchema = new mongoose.Schema({
     clinicName: {
-        type: String, required: true
+        type: String, required: true, unique: true, trim: true
     },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -13,7 +13,9 @@ const clinicSchema = new mongoose.Schema({
     },
     slug: {
         type: String,
-        required: true
+        required: true,
+        unique: true,
+        trim: true
     },
     phoneNumber: String,
     logo: String,
@@ -67,9 +69,10 @@ clinicSchema.methods.isSubscriptionActive = function () {
     const sub = this.subscription;
     const now = new Date();
 
-    if (sub.plan === plans.LIFETIME) return sub.status !== 'canceled';
+    if (sub.status !== 'active') return false;
+    if (sub.plan === plans.LIFETIME) return true;
     if (sub.plan === plans.TRIAL) return !!sub.trialEndsAt && sub.trialEndsAt > now;
-    return sub.status !== 'canceled' && !!sub.currentPeriodEnd && sub.currentPeriodEnd > now;
+    return !!sub.currentPeriodEnd && sub.currentPeriodEnd > now;
 };
 
 const Clinic = mongoose.model("clinic", clinicSchema)

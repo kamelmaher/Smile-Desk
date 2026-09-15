@@ -2,9 +2,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { appointment } from '../services/appointment'
 import type { Appointment } from '../types/Appointment'
 import type { appointmentFilters } from '../store/appointment.store'
-import { showSuccess } from '../utils/toast'
+import { showError, showSuccess } from '../utils/toast'
 
 const APPOINTMENTS_KEY = ['appointments']
+
+const getAppointmentError = (error: unknown, fallback: string) => {
+    if (error instanceof Error && error.message !== "Request failed") return error.message
+    const responseData = (error as { response?: { data?: { data?: string } } }).response?.data
+    return responseData?.data || fallback
+}
 
 type getAppointmentResponse = {
     appointments: Appointment[],
@@ -21,7 +27,17 @@ export function useLoadAppointments(filters: appointmentFilters) {
 export function useCreateAppointment() {
     const qc = useQueryClient()
     return useMutation({
-        mutationFn: (data: Appointment) => appointment.create(data).then(res => res.data),
+        mutationFn: async (data: Appointment) => {
+            try {
+                const response = await appointment.create(data)
+                if (response.data.status !== "success") {
+                    throw new Error(response.data.data || "تعذر إنشاء الموعد")
+                }
+                return response.data
+            } catch (error) {
+                throw new Error(getAppointmentError(error, "تعذر إنشاء الموعد"), { cause: error })
+            }
+        },
         onSuccess: () => {
             showSuccess("تم انشاء الموعد بنجاح")
             qc.invalidateQueries({
@@ -34,33 +50,51 @@ export function useCreateAppointment() {
 export function useConfirmAppointment() {
     const qc = useQueryClient()
     return useMutation({
-        mutationFn: (id: string) => appointment.confirm(id).then(res => res.data),
+        mutationFn: async (id: string) => {
+            try {
+                const response = await appointment.confirm(id)
+                if (response.data.status !== "success") throw new Error(response.data.data || "تعذر تأكيد الموعد")
+                return response.data
+            } catch (error) {
+                throw new Error(getAppointmentError(error, "تعذر تأكيد الموعد"), { cause: error })
+            }
+        },
         onSuccess: () => {
             showSuccess("تم التاكيد بنجاح")
             qc.invalidateQueries({
                 queryKey: APPOINTMENTS_KEY,
             })
-        }
+        },
+        onError: (error) => showError(error.message),
     })
 }
 
 export function useDeclineAppointment() {
     const qc = useQueryClient()
     return useMutation({
-        mutationFn: (id: string) => appointment.decline(id).then(res => res.data),
+        mutationFn: async (id: string) => {
+            try {
+                const response = await appointment.decline(id)
+                if (response.data.status !== "success") throw new Error(response.data.data || "تعذر إلغاء الموعد")
+                return response.data
+            } catch (error) {
+                throw new Error(getAppointmentError(error, "تعذر إلغاء الموعد"), { cause: error })
+            }
+        },
         onSuccess: () => {
             showSuccess("تم الالغاء بنجاح")
             qc.invalidateQueries({
                 queryKey: APPOINTMENTS_KEY,
             })
-        }
+        },
+        onError: (error) => showError(error.message),
     })
 }
 
-export function useGetBooked(date: string) {
+export function useGetBooked(date: string, clinicId: string) {
     return useQuery({
-        queryKey: ['booked', date],
-        queryFn: () => appointment.getBooked(date).then(res => res.data),
-        enabled: !!date,
+        queryKey: ['booked', clinicId, date],
+        queryFn: () => appointment.getBooked(date, clinicId).then(res => res.data),
+        enabled: Boolean(date && clinicId),
     })
 }

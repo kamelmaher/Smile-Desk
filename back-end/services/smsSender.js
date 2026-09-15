@@ -1,6 +1,4 @@
 const statusText = require("../data/statusText")
-const dayjs = require("dayjs")
-const plans = require("../data/plans")
 const axios = require("axios")
 
 // const apiLink = process.env.SMS_PROVIDER_LINK
@@ -22,31 +20,17 @@ const smsSender = async (message, sendTo) => {
         status: statusText.ERROR,
         data: "يرجى اضافة رسالة"
     };
+    if (!apiLink) return {
+        status: statusText.ERROR,
+        data: "SMS service is not configured"
+    };
     try {
-        const date = dayjs().format("YYYY-MM-DD");
-        const time = dayjs().format("HH:mm");
-        // const response = await axios.post(
-        //     apiLink,
-        //     {
-        //         api_key: apiKey,
-        //         sender: "Smile Desk",
-        //         message,
-        //         to: sendTo,
-        //         groups: "",
-        //         date,
-        //         time
-        //     },
-        //     {
-        //         headers: {
-        //             "Content-Type": "application/json",
-        //         },
-        //     }
-        // );
-        const link = `${apiLink}&to=${sendTo}&message=${message}`
-        const response = await axios.post(link)
+        const response = await axios.post(apiLink, null, {
+            params: { to: sendTo, message },
+            timeout: 10000,
+        })
         return response.data
-    } catch (err) {
-        console.log(err)
+    } catch {
         return { status: statusText.ERROR, data: "حدث خطا ما" }
     }
 }
